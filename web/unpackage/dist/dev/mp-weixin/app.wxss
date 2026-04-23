@@ -1,0 +1,160 @@
+/* uni-app 全局样式变量 */
+/* 主题色 */
+/*  背景色 */
+/* 文字颜色 */
+/* 边框颜色 */
+/* 间距 */
+/* 圆角 */
+/* 阴影 */
+/* 字体大小 */
+/* 行高 */
+/* z-index */
+/* 拼豆颜色调色板 */
+/* 页面通用样式 */
+page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: #F8F8F8;
+}
+/* 清除浮动 */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+/* 单行文字省略 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 多行文字省略 */
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Flex布局辅助 */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+/* 页面容器 */
+.page-container {
+  padding: 30rpx;
+}
+/* 卡片样式 */
+.card {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  padding: 24rpx;
+}
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 32rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  transition: all 0.3s;
+  border: none;
+  outline: none;
+}
+.btn:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+.btn.btn-primary {
+  background: linear-gradient(135deg, #FF6B9D, #FF69B4);
+  color: #FFFFFF;
+}
+.btn.btn-secondary {
+  background: #F2F2F2;
+  color: #333333;
+}
+.btn.btn-outline {
+  border: 2rpx solid #FF6B9D;
+  color: #FF6B9D;
+  background: transparent;
+}
+.btn.btn-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+/* 输入框样式 */
+.input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 24rpx;
+  border: 1px solid #E5E5E5;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  background: #FFFFFF;
+}
+.input:focus {
+  border-color: #FF6B9D;
+}
+.input.input-error {
+  border-color: #f5222d;
+}
+/* 分隔线 */
+.divider {
+  height: 1rpx;
+  background: #E5E5E5;
+  margin: 24rpx 0;
+}
+/* 徽章 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 10rpx;
+  background: #f5222d;
+  color: #FFFFFF;
+  font-size: 20rpx;
+  border-radius: 18rpx;
+}
+/* 加载动画 */
+@keyframes spin {
+from {
+    transform: rotate(0deg);
+}
+to {
+    transform: rotate(360deg);
+}
+}
+.loading-spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 3rpx solid rgba(255, 107, 157, 0.3);
+  border-top-color: #FF6B9D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+/* Toast样式覆盖 */
+.uni-toast {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+/* Modal样式覆盖 */
+.uni-modal {
+  border-radius: 24rpx !important;
+}
+.uni-modal__bd {
+  font-size: 28rpx !important;
+}page{--status-bar-height:25px;--top-window-height:0px;--window-top:0px;--window-bottom:0px;--window-left:0px;--window-right:0px;--window-magin:0px}[data-c-h="true"]{display: none !important;}

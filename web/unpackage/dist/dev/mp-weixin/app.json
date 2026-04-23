@@ -1,0 +1,48 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/editor/editor",
+    "pages/works/works",
+    "pages/library/library",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "拼豆图纸",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF6B9D",
+    "borderStyle": "black",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/editor/editor",
+        "text": "创作",
+        "iconPath": "static/tabbar/edit.png",
+        "selectedIconPath": "static/tabbar/edit-active.png"
+      },
+      {
+        "pagePath": "pages/works/works",
+        "text": "作品",
+        "iconPath": "static/tabbar/works.png",
+        "selectedIconPath": "static/tabbar/works-active.png"
+      },
+      {
+        "pagePath": "pages/library/library",
+        "text": "素材库",
+        "iconPath": "static/tabbar/library.png",
+        "selectedIconPath": "static/tabbar/library-active.png"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

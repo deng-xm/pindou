@@ -1,0 +1,77 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "点线面拼豆图纸生成",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/editor/editor",
+      "style": {
+        "navigationBarTitleText": "像素画编辑器",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/works/works",
+      "style": {
+        "navigationBarTitleText": "我的作品",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/library/library",
+      "style": {
+        "navigationBarTitleText": "素材库",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/detail/detail",
+      "style": {
+        "navigationBarTitleText": "图纸详情",
+        "enablePullDownRefresh": false
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "拼豆图纸",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF6B9D",
+    "borderStyle": "black",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/editor/editor",
+        "text": "创作",
+        "iconPath": "static/tabbar/edit.png",
+        "selectedIconPath": "static/tabbar/edit-active.png"
+      },
+      {
+        "pagePath": "pages/works/works",
+        "text": "作品",
+        "iconPath": "static/tabbar/works.png",
+        "selectedIconPath": "static/tabbar/works-active.png"
+      },
+      {
+        "pagePath": "pages/library/library",
+        "text": "素材库",
+        "iconPath": "static/tabbar/library.png",
+        "selectedIconPath": "static/tabbar/library-active.png"
+      }
+    ]
+  }
+}

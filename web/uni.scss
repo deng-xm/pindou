@@ -1,0 +1,257 @@
+/* uni-app 全局样式变量 */
+
+/* 主题色 */
+$primary-color: #FF6B9D;
+$secondary-color: #FFB6C1;
+$accent-color: #FF69B4;
+$success-color: #52c41a;
+$warning-color: #faad14;
+$error-color: #f5222d;
+$info-color: #1890ff;
+
+/*  背景色 */
+$bg-color: #F8F8F8;
+$bg-white: #FFFFFF;
+$bg-grey: #F2F2F2;
+
+/* 文字颜色 */
+$text-color: #333333;
+$text-color-secondary: #666666;
+$text-color-placeholder: #999999;
+
+/* 边框颜色 */
+$border-color: #E5E5E5;
+$border-light: #F0F0F0;
+
+/* 间距 */
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 48rpx;
+
+/* 圆角 */
+$radius-sm: 8rpx;
+$radius-md: 16rpx;
+$radius-lg: 24rpx;
+$radius-full: 999rpx;
+
+/* 阴影 */
+$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+
+/* 字体大小 */
+$font-size-xs: 22rpx;
+$font-size-sm: 24rpx;
+$font-size-md: 28rpx;
+$font-size-lg: 32rpx;
+$font-size-xl: 36rpx;
+
+/* 行高 */
+$line-height: 1.5;
+
+/* z-index */
+$z-index-dropdown: 100;
+$z-index-sticky: 200;
+$z-index-fixed: 300;
+$z-index-modal: 500;
+$z-index-toast: 1000;
+
+/* 拼豆颜色调色板 */
+$pindou-colors: (
+  #FFFFFF: '白色',
+  #000000: '黑色',
+  #FF0000: '红色',
+  #FF6B00: '橙色',
+  #FFFF00: '黄色',
+  #00FF00: '绿色',
+  #00FFFF: '青色',
+  #0000FF: '蓝色',
+  #8000FF: '紫色',
+  #FF00FF: '粉红',
+  #8B4513: '棕色',
+  #FFC0CB: '粉色',
+  #808080: '灰色',
+  #C0C0C0: '银色',
+  #FFD700: '金色',
+  #4169E1: '皇家蓝',
+  #32CD32: '草绿',
+  #FF6347: '番茄红',
+  #DA70D6: '兰花粉',
+  #40E0D0: '绿松石'
+);
+
+/* 页面通用样式 */
+page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: $bg-color;
+}
+
+/* 清除浮动 */
+.clearfix::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* 单行文字省略 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 多行文字省略 */
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Flex布局辅助 */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面容器 */
+.page-container {
+  padding: 30rpx;
+}
+
+/* 卡片样式 */
+.card {
+  background: $bg-white;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  padding: $spacing-md;
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-full;
+  font-size: $font-size-md;
+  transition: all 0.3s;
+  border: none;
+  outline: none;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+
+  &.btn-primary {
+    background: linear-gradient(135deg, $primary-color, $accent-color);
+    color: #FFFFFF;
+  }
+
+  &.btn-secondary {
+    background: $bg-grey;
+    color: $text-color;
+  }
+
+  &.btn-outline {
+    border: 2rpx solid $primary-color;
+    color: $primary-color;
+    background: transparent;
+  }
+
+  &.btn-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+/* 输入框样式 */
+.input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 24rpx;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  background: $bg-white;
+
+  &:focus {
+    border-color: $primary-color;
+  }
+
+  &.input-error {
+    border-color: $error-color;
+  }
+}
+
+/* 分隔线 */
+.divider {
+  height: 1rpx;
+  background: $border-color;
+  margin: $spacing-md 0;
+}
+
+/* 徽章 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 10rpx;
+  background: $error-color;
+  color: #FFFFFF;
+  font-size: 20rpx;
+  border-radius: 18rpx;
+}
+
+/* 加载动画 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 3rpx solid rgba($primary-color, 0.3);
+  border-top-color: $primary-color;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Toast样式覆盖 */
+.uni-toast {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Modal样式覆盖 */
+.uni-modal {
+  border-radius: $radius-lg !important;
+}
+
+.uni-modal__bd {
+  font-size: $font-size-md !important;
+}
