@@ -340,24 +340,25 @@ export function getContrastColor(hexColor) {
 }
 
 // 找到最接近的拼豆颜色
-export function findClosestColor(targetColor, palette = pindouColors) {
-  if (!targetColor) return palette[0]
+export function findClosestColor(targetColorRgb, palette = pindouColors) {
+  if (!targetColorRgb) return palette[0]
 
-  const target = hexToRgb(targetColor)
+  // const target = hexToRgb(targetColor)
 
   let closest = palette[0]
   let minDistance = Infinity
 
   for (const color of palette) {
     const rgb = hexToRgb(color.color)
-    const distance = colorDistance(target, rgb)
+    const distance = colorDistance(targetColorRgb, rgb)
 
     if (distance < minDistance) {
       minDistance = distance
       closest = color
     }
   }
-
+  // console.log('target', targetColorRgb)
+  // console.log('closest', closest)
   return closest
 }
 

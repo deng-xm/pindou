@@ -1,6 +1,166 @@
 <template>
   <view class="works-page">
     <text>敬请期待...</text>
+    <!-- 顶部标签 -->
+    <view class="tab-header">
+      <view 
+        class="tab-item" 
+        :class="{ active: currentTab === 'all' }"
+        @tap="switchTab('all')"
+      >
+        全部作品
+      </view>
+      <view 
+        class="tab-item" 
+        :class="{ active: currentTab === 'favorite' }"
+        @tap="switchTab('favorite')"
+      >
+        我的收藏
+      </view>
+    </view>
+
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+      <view class="search-input-wrapper">
+        <text class="search-icon">🔍</text>
+        <input 
+          class="search-input" 
+          v-model="searchKeyword" 
+          placeholder="搜索作品名称"
+          @confirm="handleSearch"
+        />
+        <text class="clear-icon" v-if="searchKeyword" @tap="clearSearch">×</text>
+      </view>
+    </view>
+
+    <!-- 排序选项 -->
+    <view class="sort-bar">
+      <view class="sort-info">
+        共 {{ filteredWorks.length }} 个作品
+      </view>
+      <view class="sort-controls">
+        <view 
+          class="sort-btn" 
+          :class="{ active: sortBy === 'time' }"
+          @tap="sortBy = 'time'"
+        >
+          按时间
+        </view>
+        <view 
+          class="sort-btn"
+          :class="{ active: sortBy === 'size' }"
+          @tap="sortBy = 'size'"
+        >
+          按尺寸
+        </view>
+      </view>
+    </view>
+
+    <!-- 作品列表 -->
+    <scroll-view 
+      class="works-list" 
+      scroll-y 
+      @scrolltolower="loadMore"
+      :lower-threshold="100"
+    >
+      <view class="works-grid" v-if="filteredWorks.length > 0">
+        <view 
+          class="work-card" 
+          v-for="work in filteredWorks" 
+          :key="work.id"
+        >
+          <view class="work-preview" @tap="openWork(work)">
+            <!-- 像素画预览 -->
+            <view class="preview-canvas">
+              <view 
+                v-for="(row, y) in work.gridData.slice(0, 30)" 
+                :key="y"
+                class="preview-row"
+              >
+                <view 
+                  v-for="(cell, x) in row.slice(0, 30)" 
+                  :key="x"
+                  class="preview-cell"
+                  :style="{ backgroundColor: getCellColor(cell) }"
+                ></view>
+              </view>
+            </view>
+            
+            <!-- 操作按钮 -->
+            <view class="work-actions">
+              <view class="action-icon" @tap.stop="toggleFavorite(work)">
+                <text>{{ isFavorite(work.id) ? '❤️' : '🤍' }}</text>
+              </view>
+              <view class="action-icon" @tap.stop="shareWork(work)">
+                <text>📤</text>
+              </view>
+              <view class="action-icon" @tap.stop="moreActions(work)">
+                <text>⋯</text>
+              </view>
+            </view>
+          </view>
+          
+          <view class="work-info">
+            <text class="work-title">{{ work.title || '未命名作品' }}</text>
+            <view class="work-meta">
+              <text class="work-size">{{ work.width }}x{{ work.height }}</text>
+              <text class="work-date">{{ formatDate(work.updateTime) }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 空状态 -->
+      <view class="empty-state" v-else>
+        <text class="empty-icon">📭</text>
+        <text class="empty-text">{{ currentTab === 'favorite' ? '暂无收藏作品' : '暂无作品' }}</text>
+        <view class="empty-btn" @tap="createNew" v-if="currentTab === 'all'">
+          创建新作品
+        </view>
+      </view>
+      
+      <!-- 加载更多 -->
+      <view class="loading-more" v-if="hasMore && filteredWorks.length > 0">
+        <text>加载更多...</text>
+      </view>
+    </scroll-view>
+
+    <!-- 底部操作栏 -->
+    <view class="bottom-bar safe-area-bottom">
+      <view class="bar-btn primary" @tap="createNew">
+        <text class="icon">+</text>
+        <text>新建作品</text>
+      </view>
+    </view>
+
+    <!-- 更多操作菜单 -->
+    <view class="action-sheet" v-if="showActionSheet" @tap="showActionSheet = false">
+      <view class="action-sheet-content" @tap.stop>
+        <view class="action-sheet-item" @tap="editWork">
+          <text class="icon">✏️</text>
+          <text>编辑</text>
+        </view>
+        <view class="action-sheet-item" @tap="downloadWork">
+          <text class="icon">📥</text>
+          <text>下载图片</text>
+        </view>
+        <view class="action-sheet-item" @tap="duplicateWork">
+          <text class="icon">📋</text>
+          <text>复制作品</text>
+        </view>
+        <view class="action-sheet-item" @tap="exportWorkPdf">
+          <text class="icon">📄</text>
+          <text>导出PDF</text>
+        </view>
+        <view class="action-sheet-item danger" @tap="deleteWork">
+          <text class="icon">🗑️</text>
+          <text>删除</text>
+        </view>
+        <view class="action-sheet-cancel" @tap="showActionSheet = false">
+          取消
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 

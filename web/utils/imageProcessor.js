@@ -85,12 +85,10 @@ async function createPatternFromImage(imagePath, options, canvasId = 'processCan
     for (let x = 0; x < width; x++) {
       const pixel = pixelData[y * width + x]
       if (pixel && pixel.a > 128) {  // 有不透明度
-        const closestColor = findClosestColor(
-          `rgb(${pixel.r}, ${pixel.g}, ${pixel.b})`
-        )
+        const closestColor = findClosestColor(pixel)
         const colorIndex = pindouColors.findIndex(c => c.id === closestColor.id)
         if (colorIndex >= 0) {
-          grid[y][x] = colorIndex + 1
+          grid[y][x] = closestColor
           usedColors.add(closestColor.color)
         }
       }
