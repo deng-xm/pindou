@@ -3,7 +3,7 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "点线面拼豆图纸生成",
+        "navigationBarTitleText": "HUOHUO拼豆图纸生成",
         "enablePullDownRefresh": true
       }
     },
