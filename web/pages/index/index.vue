@@ -176,18 +176,13 @@ function handleCreate() {
 }
 
 function handleUpload() {
+
   uni.chooseImage({
     count: 1,
     sizeType: ['original', 'compressed'],
     sourceType: ['album', 'camera'],
     success: (res) => {
-      console.log('chooseImage完整返回:', JSON.stringify(res))
       const tempFilePath = res.tempFilePaths[0]
-      console.log('选择图片成功，临时路径:', tempFilePath)
-      console.log('路径类型:', typeof tempFilePath)
-      console.log('路径长度:', tempFilePath ? tempFilePath.length : 0)
-      
-      
       // 验证路径是否有效
       if (!tempFilePath || tempFilePath === '') {
         console.error('临时路径为空')
@@ -202,7 +197,6 @@ function handleUpload() {
       uni.getImageInfo({
         src: tempFilePath,
         success: (infoRes) => {
-          console.log('图片信息验证成功:', infoRes)
           console.log('图片尺寸:', infoRes.width, 'x', infoRes.height)
           
           // 关键：将临时文件保存为持久化文件
@@ -233,6 +227,7 @@ function handleUpload() {
                     const verifyParams = uni.getStorageSync('editor_params')
                     console.log('验证存储内容:', verifyParams)
                     
+                    // 选择色卡、网格数量
                     // 延迟跳转，让用户看到调试信息
                     setTimeout(() => {
                       uni.switchTab({

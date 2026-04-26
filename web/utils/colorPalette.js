@@ -1,5 +1,5 @@
-// 拼豆颜色调色板 - 完整配色表
-export const pindouColors = [
+// 拼豆颜色调色板 - 完整配色表.
+export const mard291 = [
   // A 系（黄/橙黄）
   { id: 1, name: 'A1', color: '#FAF4C8' },
   { id: 2, name: 'A2', color: '#FFFFD5' },
@@ -322,25 +322,26 @@ export const pindouColors = [
   { id: 291, name: 'ZG8', color: '#AB91C0' }
 ]
 
+
 // 获取颜色名称
-export function getColorName(color) {
-  if (!color) return ''
-  const found = pindouColors.find(c => c.color.toUpperCase() === color.toUpperCase())
-  return found ? found.name : color
-}
+// export function getColorName(color) {
+//   if (!color) return ''
+//   const found = mard291.find(c => c.color.toUpperCase() === color.toUpperCase())
+//   return found ? found.name : color
+// }
 
 // 根据颜色获取对比色
-export function getContrastColor(hexColor) {
-  if (!hexColor || hexColor === 'transparent') return '#000000'
-  const r = parseInt(hexColor.slice(1, 3), 16)
-  const g = parseInt(hexColor.slice(3, 5), 16)
-  const b = parseInt(hexColor.slice(5, 7), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.5 ? '#000000' : '#FFFFFF'
-}
+// export function getContrastColor(hexColor) {
+//   if (!hexColor || hexColor === 'transparent') return '#000000'
+//   const r = parseInt(hexColor.slice(1, 3), 16)
+//   const g = parseInt(hexColor.slice(3, 5), 16)
+//   const b = parseInt(hexColor.slice(5, 7), 16)
+//   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+//   return luminance > 0.5 ? '#000000' : '#FFFFFF'
+// }
 
 // 找到最接近的拼豆颜色
-export function findClosestColor(targetColorRgb, palette = pindouColors) {
+export function findClosestColor(targetColorRgb, palette = mard291) {
   if (!targetColorRgb) return palette[0]
 
   // const target = hexToRgb(targetColor)
@@ -363,12 +364,12 @@ export function findClosestColor(targetColorRgb, palette = pindouColors) {
 }
 
 // RGB转HEX
-export function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map(x => {
-    const hex = Math.round(x).toString(16)
-    return hex.length === 1 ? '0' + hex : hex
-  }).join('')
-}
+// export function rgbToHex(r, g, b) {
+//   return '#' + [r, g, b].map(x => {
+//     const hex = Math.round(x).toString(16)
+//     return hex.length === 1 ? '0' + hex : hex
+//   }).join('')
+// }
 
 // HEX转RGB
 export function hexToRgb(hex) {

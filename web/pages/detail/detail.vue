@@ -97,7 +97,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getWorkById, addFavorite, removeFavorite, getFavorites } from '@/utils/storage'
-import { pindouColors } from '@/utils/colorPalette'
+import { mard291 } from '@/utils/colorPalette'
 
 const work = ref(null)
 const isFav = ref(false)
@@ -122,7 +122,7 @@ const usedColors = computed(() => {
     }
   }
   return Array.from(colorIds)
-    .map(id => pindouColors[id - 1])
+    .map(id => mard291[id - 1])
     .filter(Boolean)
 })
 
@@ -139,7 +139,7 @@ onMounted(() => {
 
 function getCellColor(colorId) {
   if (!colorId || colorId === 0) return 'transparent'
-  const color = pindouColors[colorId - 1]
+  const color = mard291[colorId - 1]
   return color?.color || '#CCCCCC'
 }
 
