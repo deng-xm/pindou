@@ -343,7 +343,7 @@ function formatDate(timestamp) {
 
 .banner {
   position: relative;
-  background: linear-gradient(135deg, #FF6B9D 0%, #FF8EC4 100%);
+  background: linear-gradient(135deg, #fade05 0%, #FFE105 100%);
   padding: 60rpx 40rpx 80rpx;
   border-radius: 0 0 40rpx 40rpx;
   overflow: hidden;
@@ -406,7 +406,7 @@ function formatDate(timestamp) {
   display: flex;
   justify-content: space-around;
   padding: 40rpx 20rpx;
-  margin-top: -40rpx;
+  // margin-top: -40rpx;
   position: relative;
   z-index: 10;
   
@@ -431,7 +431,7 @@ function formatDate(timestamp) {
       }
       
       &.create-icon {
-        background: linear-gradient(135deg, #FF6B9D 0%, #FF8EC4 100%);
+        background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
       }
       
       &.upload-icon {

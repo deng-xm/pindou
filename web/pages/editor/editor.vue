@@ -134,7 +134,11 @@
               <view 
                 class="color-swatch"
                 :style="{ backgroundColor: color.color }"
-              ></view>
+              >
+              <view class="color-picker-name">
+                <text stroke="black" stroke-width="1" fill="white">{{color.name}}</text>
+              </view>
+            </view>
             </view>
           </view>
         </scroll-view>
@@ -173,7 +177,7 @@
           <text class="menu-icon">💾</text>
           <text class="menu-text">保存作品</text>
         </view>
-        <view class="menu-item" @tap="exportImage">
+        <view class="menu-item" @tap="generatePoster">
           <text class="menu-icon">📥</text>
           <text class="menu-text">导出图片</text>
         </view>
@@ -285,11 +289,11 @@ import { processImage } from '@/utils/imageProcessor'
 let pendingImage = null
 
 // 画布配置
-const gridWidth = ref(290)
-const gridHeight = ref(290)
+const gridWidth = ref(1000)
+const gridHeight = ref(1000)
 const cellSize = ref(10)
-const gridWidthCells = ref(29)
-const gridHeightCells = ref(29)
+const gridWidthCells = ref(100)
+const gridHeightCells = ref(100)
 
 // 画布数据
 const gridData = ref([])
@@ -311,8 +315,8 @@ const showMenu = ref(false)
 const showSettingsModal = ref(false)
 const isLoading = ref(false)
 const loadingText = ref('')
-const canvasWidth = ref(29)
-const canvasHeight = ref(29)
+const canvasWidth = ref(100)
+const canvasHeight = ref(100)
 
 // 工具列表
 const tools = [
@@ -631,6 +635,87 @@ function saveWorkAction() {
   
   showMenu.value = false
 }
+
+async function generatePoster() {
+  console.log('生成海报')
+    // 等待 Canvas 节点就绪
+    const query = wx.createSelectorQuery();
+    const canvasNode = await new Promise((resolve) => {
+      query.select('#mainCanvas').node(resolve).exec();
+    });
+
+    const canvas = canvasNode.node;
+    const ctx = canvas.getContext('2d');
+    const dpr = wx.getSystemInfoSync().pixelRatio;
+
+    // 设定画布大小 (逻辑尺寸)
+    const canvasWidth = 300;
+    const canvasHeight = 400;
+    canvas.width = canvasWidth * dpr;
+    canvas.height = canvasHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    // 绘制背景
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // 绘制文本示例
+    ctx.fillStyle = '#333333';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('拼豆图纸', 20, 40);
+
+    // 绘制图片示例 (网络图需先转本地)
+    // 假设从 chooseImage 选择了本地临时文件 tempPath
+    const img = canvas.createImage();
+    console.log('canvas绘制图片:',img)
+    await new Promise((resolve, reject) => {
+      img.onload = () => {
+        ctx.drawImage(img, 50, 100, 100, 100);
+        resolve();
+      };
+      img.onerror = reject;
+      // img.src = '本地临时图片路径或下载后的网络图片路径';
+    });
+
+    // 等待绘制完成简单延时
+    await new Promise(r => setTimeout(r, 200));
+
+    // 导出图片并保存至相册
+    const tempFilePath = await this.canvasToTempFilePath(canvas);
+    this.saveImageToAlbum(tempFilePath);
+  }
+
+
+  function canvasToTempFilePath(canvas) { // 封装导出函数
+    return new Promise((resolve, reject) => {
+      wx.canvasToTempFilePath({
+        canvas: canvas,
+        success: res => resolve(res.tempFilePath),
+        fail: reject
+      });
+    });
+  }
+
+  function saveImageToAlbum(filePath) { // 封装保存函数
+    wx.saveImageToPhotosAlbum({
+      filePath: filePath,
+      success: () => wx.showToast({ title: '保存成功' }),
+      fail: (err) => {
+        if (err.errMsg.includes('auth deny')) this.requestAlbumAuth();　　　　 // 请求相册权限
+        else wx.showToast({ title: '保存失败', icon: 'error' });
+      }
+    });
+  }
+
+  function requestAlbumAuth() { // 请求相册权限引导
+    wx.showModal({
+      title: '提示',
+      content: '需要您授权保存图片到相册',
+      success(res) {
+        if (res.confirm) wx.openSetting();
+      }
+    });
+  }
 
 // 导出图片
 function exportImage() {
@@ -1009,6 +1094,26 @@ onShareTimeline(() => {
 .color-picker-section {
   padding: 0 20rpx;
   margin-bottom: 20rpx;
+  .color-swatch{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .color-picker-name{
+    width: 36rpx;
+    padding: 2rpx;
+    background-color: rgba(255, 255, 255, 0.5);
+    text-align: center; 
+    border-radius: 4rpx;
+    // line-height: 20rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text{
+      color: #181717;
+      font-size: 16rpx;
+    }
+  }
 }
 
 .current-color {
@@ -1042,12 +1147,14 @@ onShareTimeline(() => {
 
 .color-item {
   flex-shrink: 0;
+  text-align: center;
   
   .color-swatch {
     width: 44rpx;
     height: 44rpx;
     border-radius: 8rpx;
     border: 2px solid transparent;
+    text-align: center;
   }
   
   &.active .color-swatch {
