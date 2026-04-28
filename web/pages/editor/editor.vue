@@ -173,7 +173,7 @@
     <view class="menu-overlay" v-if="showMenu" @tap="showMenu = false">
       <view class="menu-panel" @tap.stop>
         <view class="menu-header">更多操作</view>
-        <view class="menu-item" @tap="saveWork">
+        <view class="menu-item" @tap="saveWorkAction">
           <text class="menu-icon">💾</text>
           <text class="menu-text">保存作品</text>
         </view>
@@ -216,7 +216,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
 import { mard291 } from '@/utils/colorPalette'
 import { saveWork, getWorkById, getTemplates } from '@/utils/storage'
-import { processImage } from '@/utils/imageProcessor'
+import { processImage, exportAsImage } from '@/utils/imageProcessor'
 import CanvasSetting from '@/components/canvasSetting.vue'
 
 
@@ -588,87 +588,169 @@ function saveWorkAction() {
 }
 
 async function generatePoster() {
-  console.log('图纸开始下载')
-    // 等待 Canvas 节点就绪
-    const query = wx.createSelectorQuery();
-    const canvasNode = await new Promise((resolve) => {
-      query.select('#mainCanvas').node(resolve).exec();
-    });
-
-    const canvas = canvasNode.node;
-    const ctx = canvas.getContext('2d');
-    const dpr = wx.getSystemInfoSync().pixelRatio;
-
-    // 设定画布大小 (逻辑尺寸)
-    const canvasWidth = 300;
-    const canvasHeight = 400;
-    canvas.width = canvasWidth * dpr;
-    canvas.height = canvasHeight * dpr;
-    ctx.scale(dpr, dpr);
-
-    // 绘制背景
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    // 绘制文本示例
-    ctx.fillStyle = '#333333';
-    ctx.font = '16px sans-serif';
-    ctx.fillText('拼豆图纸', 20, 40);
-
-    // 绘制图片示例 (网络图需先转本地)
-    const img = canvas.createImage();
+  console.log('开始导出图片')
+  isLoading.value = true
+  loadingText.value = '正在生成图片...'
+  
+  try {
+    const result = await exportCanvasToImage()
     
-    await new Promise((resolve, reject) => {
-      img.onload = () => {
-        ctx.drawImage(img, 50, 100, 100, 100);
-        console.log('canvas绘制图片:',img)
-        resolve();
-      };
-      img.onerror = reject;
-      // img.src = 'https://example.com/path/to/image.jpg';
-      // img.src = '本地临时图片路径或下载后的网络图片路径';
-    });
-
-    // 等待绘制完成简单延时
-    await new Promise(r => setTimeout(r, 200));
-
-    // 导出图片并保存至相册
-    const tempFilePath = await canvasToTempFilePath(canvas);
-    console.log('图纸下载完成，临时路径:', tempFilePath)
-    saveImageToAlbum(tempFilePath);
+    if (result && result.tempFilePath) {
+      await saveImageToAlbum(result.tempFilePath)
+      uni.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+    } else {
+      throw new Error('图片生成失败')
+    }
+  } catch (err) {
+    console.error('导出图片失败:', err)
+    uni.showToast({
+      title: '导出失败: ' + (err.message || '未知错误'),
+      icon: 'none',
+      duration: 3000
+    })
+  } finally {
+    isLoading.value = false
+    showMenu.value = false
   }
+}
 
+async function exportCanvasToImage() {
+  return new Promise((resolve, reject) => {
+    const query = uni.createSelectorQuery()
+    query.select('#mainCanvas')
+      .fields({ node: true, size: true })
+      .exec(async (res) => {
+        if (!res || !res[0] || !res[0].node) {
+          reject(new Error('Canvas 节点未找到'))
+          return
+        }
 
-  function canvasToTempFilePath(canvas) { // 封装导出函数
-    return new Promise((resolve, reject) => {
-      wx.canvasToTempFilePath({
-        canvas: canvas,
-        success: res => resolve(res.tempFilePath),
-        fail: reject
-      });
-    });
-  }
+        const canvas = res[0].node
+        const ctx = canvas.getContext('2d')
+        const dpr = wx.getSystemInfoSync().pixelRatio
 
-  function saveImageToAlbum(filePath) { // 封装保存函数
+        const width = gridWidthCells.value
+        const height = gridHeightCells.value
+        const cellSizeExport = 20
+
+        const exportWidth = width * cellSizeExport
+        const exportHeight = height * cellSizeExport
+
+        canvas.width = exportWidth * dpr
+        canvas.height = exportHeight * dpr
+        ctx.scale(dpr, dpr)
+
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillRect(0, 0, exportWidth, exportHeight)
+        console.log('保存图片---gridData',gridData.value)
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            if(y<gridData.value.length){
+              if(x<gridData.value[y].length){
+                const color = gridData.value[y][x]
+                const colorId = color?.id||0
+                // if(typeof color === 'object'){
+                //   colorId = color.id
+                // }
+                if (colorId > 0) {
+                  const pindouColor = mard291[colorId - 1]
+                  if (pindouColor && pindouColor.color !== 'transparent') {
+                    const cx = x * cellSizeExport + cellSizeExport / 2
+                    const cy = y * cellSizeExport + cellSizeExport / 2
+                    const r = cellSizeExport / 2 - 1
+
+                    const gradient = ctx.createRadialGradient(
+                      cx - r * 0.3, cy - r * 0.3, 0,
+                      cx, cy, r
+                    )
+                    gradient.addColorStop(0, lightenColor(pindouColor.color, 30))
+                    gradient.addColorStop(1, pindouColor.dark || pindouColor.color)
+
+                    ctx.fillStyle = gradient
+                    ctx.beginPath()
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2)
+                    ctx.fill()
+
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)'
+                    ctx.beginPath()
+                    ctx.arc(cx, cy, r * 0.25, 0, Math.PI * 2)
+                    ctx.fill()
+                  }
+                }
+              }
+            }
+            // const color = gridData.value[y][x]
+            // let colorId = 0
+            // if(typeof color === 'object'){
+            //   colorId = color.id
+            // }
+            if (showGrid.value) {
+              ctx.strokeStyle = 'rgba(0,0,0,0.1)'
+              ctx.lineWidth = 0.5
+              ctx.strokeRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+            }
+          }
+        }
+
+        await new Promise(r => setTimeout(r, 200))
+
+        wx.canvasToTempFilePath({
+          canvas: canvas,
+          x: 0,
+          y: 0,
+          width: exportWidth,
+          height: exportHeight,
+          destWidth: exportWidth,
+          destHeight: exportHeight,
+          fileType: 'png',
+          quality: 1,
+          success: (res) => {
+            resolve(res)
+          },
+          fail: (err) => {
+            reject(err)
+          }
+        })
+      })
+  })
+}
+
+function lightenColor(hex, percent) {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const amt = Math.round(2.55 * percent)
+  const R = Math.min(255, (num >> 16) + amt)
+  const G = Math.min(255, ((num >> 8) & 0x00FF) + amt)
+  const B = Math.min(255, (num & 0x0000FF) + amt)
+  return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
+}
+
+function saveImageToAlbum(filePath) {
+  return new Promise((resolve, reject) => {
     wx.saveImageToPhotosAlbum({
       filePath: filePath,
-      success: () => wx.showToast({ title: '保存成功' }),
+      success: () => {
+        resolve()
+      },
       fail: (err) => {
-        if (err.errMsg.includes('auth deny')) requestAlbumAuth();　　　　 // 请求相册权限
-        else wx.showToast({ title: '保存失败', icon: 'error' });
+        if (err.errMsg.includes('auth deny')) {
+          wx.showModal({
+            title: '提示',
+            content: '需要您授权保存图片到相册',
+            success: (res) => {
+              if (res.confirm) {
+                wx.openSetting()
+              }
+            }
+          })
+        }
+        reject(err)
       }
-    });
-  }
-
-  function requestAlbumAuth() { // 请求相册权限引导
-    wx.showModal({
-      title: '提示',
-      content: '需要您授权保存图片到相册',
-      success(res) {
-        if (res.confirm) wx.openSetting();
-      }
-    });
-  }
+    })
+  })
+}
 
 // 导出图片
 function exportImage() {
