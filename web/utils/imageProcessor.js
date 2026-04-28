@@ -1,5 +1,5 @@
 // 图片处理工具
-import { findClosestColor, pindouColors } from './colorPalette'
+import { findClosestColor, mard291 } from './colorPalette'
 
 // 图像处理配置
 const defaultConfig = {
@@ -86,7 +86,7 @@ async function createPatternFromImage(imagePath, options, canvasId = 'processCan
       const pixel = pixelData[y * width + x]
       if (pixel && pixel.a > 128) {  // 有不透明度
         const closestColor = findClosestColor(pixel)
-        const colorIndex = pindouColors.findIndex(c => c.id === closestColor.id)
+        const colorIndex = mard291.findIndex(c => c.id === closestColor.id)
         if (colorIndex >= 0) {
           grid[y][x] = closestColor
           usedColors.add(closestColor.color)
@@ -248,7 +248,7 @@ export async function exportAsImage(gridData, options = {}) {
     for (let x = 0; x < width; x++) {
       const colorId = gridData[y][x]
       if (colorId > 0) {
-        const pindouColor = pindouColors[colorId - 1]
+        const pindouColor = mard291[colorId - 1]
         if (pindouColor && pindouColor.color !== 'transparent') {
           // 绘制珠子圆形
           const cx = x * cellSize + cellSize / 2

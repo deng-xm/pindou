@@ -198,7 +198,7 @@
 
     <!-- 设置弹窗 -->
     <view class="modal-overlay" v-if="showSettingsModal" @tap="showSettingsModal = false">
-      <canvas-setting></canvas-setting>
+      <canvas-setting :button-text="settingButtonText" :width="canvasWidth" :height="canvasHeight" :cellSize="cellSize" :grid-data="gridData" @close="showSettingsModal=false" @updateCanvas="applySetting"></canvas-setting>
     </view>
 
     <!-- 加载提示 -->
@@ -252,6 +252,9 @@ const isLoading = ref(false)
 const loadingText = ref('')
 const canvasWidth = ref(100)
 const canvasHeight = ref(100)
+const settingButtonText = ref('应用')
+const applyType = ref('updateCanvas')
+const applyImgPath = ref('')
 
 // 工具列表
 const tools = [
@@ -290,7 +293,6 @@ const sizePresets = [
 
 // 初始化
 onMounted(() => {
-  console.log('Editor页面加载')
   initGrid()
   currentSelectedColor.value = mard291[0]
   // 检查本地存储参数（从 tabbar 页面跳转时使用）
@@ -343,7 +345,7 @@ onMounted(() => {
           console.log('开始处理pendingImage:', pendingImage)
           const image = pendingImage
           pendingImage = null
-          convertImage(image)
+          beforeConvertImage(image)
         } else {
           console.log('pendingImage已为空')
         }
@@ -356,6 +358,7 @@ onMounted(() => {
 
 // 初始化网格
 function initGrid() {
+  // 设置画布
   const data = []
   for (let y = 0; y < gridHeightCells.value; y++) {
     data[y] = []
@@ -368,12 +371,25 @@ function initGrid() {
   saveToHistory()
 }
 
+function applySetting(config){
+  console.log('applyType:', applyType.value)
+  updateCanvasSize(config)
+  if(applyType.value==='convertImage'&&applyImgPath.value){
+    convertImage(applyImgPath.value)
+  }
+}
+
 // 更新画布尺寸
-function updateCanvasSize() {
-  gridWidth.value = gridWidthCells.value * cellSize.value
-  gridHeight.value = gridHeightCells.value * cellSize.value
-  gridWidthCells.value = Math.max(5, Math.min(100, canvasWidth.value))
-  gridHeightCells.value = Math.max(5, Math.min(100, canvasHeight.value))
+function updateCanvasSize(config) {
+  console.log('画布尺寸更新：', config)
+  // const { width, height, cellSize } = config
+  const width = config?.width || canvasWidth.value
+  const height = config?.height || canvasHeight.value
+  const cellSizeNew = config?.cellSize || cellSize.value
+  gridWidthCells.value = Math.max(5, Math.min(100, width))
+  gridHeightCells.value = Math.max(5, Math.min(100, height))
+  gridWidth.value = gridWidthCells.value * cellSizeNew
+  gridHeight.value = gridHeightCells.value * cellSizeNew
 }
 
 // 获取格子样式
@@ -572,7 +588,7 @@ function saveWorkAction() {
 }
 
 async function generatePoster() {
-  console.log('生成海报')
+  console.log('图纸开始下载')
     // 等待 Canvas 节点就绪
     const query = wx.createSelectorQuery();
     const canvasNode = await new Promise((resolve) => {
@@ -600,15 +616,16 @@ async function generatePoster() {
     ctx.fillText('拼豆图纸', 20, 40);
 
     // 绘制图片示例 (网络图需先转本地)
-    // 假设从 chooseImage 选择了本地临时文件 tempPath
     const img = canvas.createImage();
-    console.log('canvas绘制图片:',img)
+    
     await new Promise((resolve, reject) => {
       img.onload = () => {
         ctx.drawImage(img, 50, 100, 100, 100);
+        console.log('canvas绘制图片:',img)
         resolve();
       };
       img.onerror = reject;
+      // img.src = 'https://example.com/path/to/image.jpg';
       // img.src = '本地临时图片路径或下载后的网络图片路径';
     });
 
@@ -616,8 +633,9 @@ async function generatePoster() {
     await new Promise(r => setTimeout(r, 200));
 
     // 导出图片并保存至相册
-    const tempFilePath = await this.canvasToTempFilePath(canvas);
-    this.saveImageToAlbum(tempFilePath);
+    const tempFilePath = await canvasToTempFilePath(canvas);
+    console.log('图纸下载完成，临时路径:', tempFilePath)
+    saveImageToAlbum(tempFilePath);
   }
 
 
@@ -636,7 +654,7 @@ async function generatePoster() {
       filePath: filePath,
       success: () => wx.showToast({ title: '保存成功' }),
       fail: (err) => {
-        if (err.errMsg.includes('auth deny')) this.requestAlbumAuth();　　　　 // 请求相册权限
+        if (err.errMsg.includes('auth deny')) requestAlbumAuth();　　　　 // 请求相册权限
         else wx.showToast({ title: '保存失败', icon: 'error' });
       }
     });
@@ -691,6 +709,7 @@ function shareWork() {
 function showSettings() {
   showMenu.value = false
   showSettingsModal.value = true
+  applyType.value = 'updateCanvas'
 }
 
 // 加载作品
@@ -719,13 +738,17 @@ function loadTemplate(templateId) {
     saveToHistory()
   }
 }
+function beforeConvertImage(imagePath){
+  settingButtonText.value="开始转换"
+  showSettingsModal.value = true 
+  applyType.value = 'convertImage'
+  applyImgPath.value=imagePath
+}
 
 // 图片转换
 async function convertImage(imagePath) {
-  console.log('开始转换图片，路径:', imagePath)
   isLoading.value = true
   loadingText.value = '正在转换图片...'
-  
   try {
     // 首先验证图片路径是否有效
     console.log('验证图片路径...')
@@ -738,8 +761,8 @@ async function convertImage(imagePath) {
     
     console.log('开始处理图片...')
     const result = await processImage(imagePath, {
-      maxWidth: 41,
-      maxHeight: 41,
+      maxWidth: gridWidthCells.value,
+      maxHeight: gridHeightCells.value,
       canvasId: 'processCanvas'
     })
     console.log('图片处理结果：', result)
@@ -916,7 +939,7 @@ onShareTimeline(() => {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 3.5pt;
+    font-size: 6rpx;
     color: rgba(0, 0, 0, 0.5);
   }
 }

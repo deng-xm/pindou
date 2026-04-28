@@ -280,14 +280,6 @@ function handleUpload() {
   })
 }
 
-function onDebugImageLoad(e) {
-  console.log('调试图片加载成功:', e)
-}
-
-function onDebugImageError(e) {
-  console.error('调试图片加载失败:', e)
-}
-
 function goToTemplates() {
   uni.switchTab({
     url: '/pages/library/library'
