@@ -62,9 +62,9 @@ async function createPatternFromImage(imagePath, options, canvasId = 'processCan
 
   // 创建网格数据
   const grid = []
-  for (let y = 0; y < height; y++) {
+  for (let y = 0; y < height+6; y++) {
     grid[y] = []
-    for (let x = 0; x < width; x++) {
+    for (let x = 0; x < width+6; x++) {
       grid[y][x] = 0  // 0 表示空/透明
     }
   }
@@ -81,15 +81,19 @@ async function createPatternFromImage(imagePath, options, canvasId = 'processCan
     pixelData = Array(width * height).fill({ r: 255, g: 255, b: 255, a: 0 })
   }
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const pixel = pixelData[y * width + x]
-      if (pixel && pixel.a > 128) {  // 有不透明度
-        const closestColor = findClosestColor(pixel)
-        const colorIndex = mard291.findIndex(c => c.id === closestColor.id)
-        if (colorIndex >= 0) {
-          grid[y][x] = closestColor
-          usedColors.add(closestColor.color)
+  for (let y = 0; y < height+6; y++) {
+    for (let x = 0; x < width+6; x++) {
+      if(x>2&&y>2&&x<width+3&&y<height+3){
+        let pixY=y-3
+        let pixX=x-3
+        const pixel = pixelData[pixY * width + pixX]
+        if (pixel && pixel.a > 128) {  // 有不透明度
+          const closestColor = findClosestColor(pixel)
+          const colorIndex = mard291.findIndex(c => c.id === closestColor.id)
+          if (colorIndex >= 0) {
+            grid[y][x] = closestColor
+            usedColors.add(closestColor.color)
+          }
         }
       }
     }
@@ -250,30 +254,14 @@ export async function exportAsImage(gridData, options = {}) {
       if (colorId > 0) {
         const pindouColor = mard291[colorId - 1]
         if (pindouColor && pindouColor.color !== 'transparent') {
-          // 绘制珠子圆形
-          const cx = x * cellSize + cellSize / 2
-          const cy = y * cellSize + cellSize / 2
-          const r = cellSize / 2 - 1
-
-          // 珠子渐变效果
-          const gradient = ctx.createRadialGradient(
-            cx - r * 0.3, cy - r * 0.3, 0,
-            cx, cy, r
-          )
-          gradient.addColorStop(0, lightenColor(pindouColor.color, 30))
-          gradient.addColorStop(1, pindouColor.dark || pindouColor.color)
-
-          ctx.fillStyle = gradient
-          ctx.beginPath()
-          ctx.arc(cx, cy, r, 0, Math.PI * 2)
-          ctx.fill()
-
-          // 珠子中心孔
-          ctx.fillStyle = 'rgba(0,0,0,0.15)'
-          ctx.beginPath()
-          ctx.arc(cx, cy, r * 0.25, 0, Math.PI * 2)
-          ctx.fill()
+          // Fill with solid color to match display
+          ctx.fillStyle = pindouColor.color
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
         }
+      } else {
+        // Empty cell
+        ctx.fillStyle = 'transparent'
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
       }
 
       // 绘制网格线

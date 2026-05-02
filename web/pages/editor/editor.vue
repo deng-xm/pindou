@@ -32,6 +32,7 @@
         :show-scrollbar="false"
       >
         <view 
+          id="canvasWrapper"
           class="canvas-wrapper" 
           :style="{ 
             width: gridWidth + 'px', 
@@ -77,9 +78,9 @@
                 @longpress="handleCellLongPress(x, y)"
               >
                 <text 
-                  v-if="showNumbers && cell.id > 0" 
+                  v-if="showNumbers&&(cell.name||x==0||y==0||x==row.length-1||y==gridData.length-1)"
                   class="cell-number"
-                >{{ cell.name }}</text>
+                >{{ getCellName(y,x) }}</text>
               </view>
             </view>
           </view>
@@ -241,7 +242,7 @@ const currentColorIndex = ref(0)
 const currentSelectedColor = ref({})
 const currentCell = ref({ x: -1, y: -1 })
 const showGrid = ref(true)
-const showNumbers = ref(false)
+const showNumbers = ref(true)
 const canvasScale = ref(1)
 
 // UI状态
@@ -298,21 +299,15 @@ onMounted(() => {
   // 检查本地存储参数（从 tabbar 页面跳转时使用）
   try {
     const params = uni.getStorageSync('editor_params')
-    console.log('读取editor_params:', params)
     if (params) {
-      console.log('发现editor_params，准备清除')
       uni.removeStorageSync('editor_params')
       if (params.workId) {
-        console.log('加载作品:', params.workId)
         loadWork(params.workId)
       } else if (params.templateId) {
-        console.log('加载模板:', params.templateId)
         loadTemplate(params.templateId)
       } else if (params.image) {
-        console.log('发现图片参数:', params.image)
         // 延迟执行，等待 canvas 准备好
         pendingImage = params.image
-        console.log('设置pendingImage:', pendingImage)
       }
     } else {
       console.log('未找到editor_params')
@@ -325,7 +320,6 @@ onMounted(() => {
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1]
   const options = currentPage.options || {}
-  console.log('页面options:', options)
   
   if (options.workId) {
     loadWork(options.workId)
@@ -335,14 +329,11 @@ onMounted(() => {
     // 延迟执行，等待 canvas 准备好
     pendingImage = decodeURIComponent(options.image)
   }
-  console.log('最终pendingImage:', pendingImage)
   // 延迟处理待转换的图片
   if (pendingImage) {
-    console.log('准备处理图片，500ms后执行')
     nextTick(() => {
       setTimeout(() => {
         if (pendingImage) {
-          console.log('开始处理pendingImage:', pendingImage)
           const image = pendingImage
           pendingImage = null
           beforeConvertImage(image)
@@ -372,7 +363,6 @@ function initGrid() {
 }
 
 function applySetting(config){
-  console.log('applyType:', applyType.value)
   updateCanvasSize(config)
   if(applyType.value==='convertImage'&&applyImgPath.value){
     convertImage(applyImgPath.value)
@@ -381,8 +371,6 @@ function applySetting(config){
 
 // 更新画布尺寸
 function updateCanvasSize(config) {
-  console.log('画布尺寸更新：', config)
-  // const { width, height, cellSize } = config
   const width = config?.width || canvasWidth.value
   const height = config?.height || canvasHeight.value
   const cellSizeNew = config?.cellSize || cellSize.value
@@ -390,6 +378,33 @@ function updateCanvasSize(config) {
   gridHeightCells.value = Math.max(5, Math.min(100, height))
   gridWidth.value = gridWidthCells.value * cellSizeNew
   gridHeight.value = gridHeightCells.value * cellSizeNew
+  // config?.gridData && (gridData.value = config?.gridData)
+  // const gridDataLen=gridData.value.length
+  // let gridDataTemp = Array.from(gridData.value)
+  // for(let y=0;y<gridDataLen;y++){
+  //   for(let x=0;x<gridDataLen;x++){
+  //     if(y===0||y===gridDataLen-1&&x>0){
+  //       gridDataTemp[y][x] = { name: y===0?x:(y === gridDataLen - 1&&x>0 ? x : y+1),id:0}
+  //     }
+  //     if(x===0||x===gridDataLen-1&&y>0){
+  //       gridDataTemp[y][x] = { name:x===0?y:(x === gridDataLen - 1&&y>0 ? y : x+1),id:0}
+  //     }
+  //   }
+  // }
+  // gridData.value = gridDataTemp
+  // console.log('gridData2222:',gridData.value)
+}
+
+function getCellName(y, x) {
+  const row = gridData.value[y]
+  if(row[x].name){return row[x].name}
+  if((y===0||y===gridData.value.length-1)&&x>0&&x<row.length-1){
+    return x
+  }
+  if((x===0||x===row.length-1)&&y>0&&y<gridData.value.length-1){
+    return y
+  }
+  return null
 }
 
 // 获取格子样式
@@ -403,7 +418,8 @@ function getCellStyle(colorId, x, y) {
     height: cellSize.value + 'px',
     backgroundColor: bgColor,
     borderColor: borderColor,
-    borderWidth: showGrid.value ? '0.5px' : '0'
+    borderWidth: showGrid.value ? '0.5px' : '0',
+    fontSize: cellSize.value * 0.3 + 'px',
   }
 }
 
@@ -588,7 +604,6 @@ function saveWorkAction() {
 }
 
 async function generatePoster() {
-  console.log('开始导出图片')
   isLoading.value = true
   loadingText.value = '正在生成图片...'
   
@@ -634,7 +649,7 @@ async function exportCanvasToImage() {
 
         const width = gridWidthCells.value
         const height = gridHeightCells.value
-        const cellSizeExport = 20
+        const cellSizeExport = cellSize.value // Use the same cell size as displayed
 
         const exportWidth = width * cellSizeExport
         const exportHeight = height * cellSizeExport
@@ -643,54 +658,53 @@ async function exportCanvasToImage() {
         canvas.height = exportHeight * dpr
         ctx.scale(dpr, dpr)
 
+        // Draw white background
         ctx.fillStyle = '#FFFFFF'
         ctx.fillRect(0, 0, exportWidth, exportHeight)
-        console.log('保存图片---gridData',gridData.value)
+        
+        // Draw each cell to match the grid-overlay exactly
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
-            if(y<gridData.value.length){
-              if(x<gridData.value[y].length){
-                const color = gridData.value[y][x]
-                const colorId = color?.id||0
-                // if(typeof color === 'object'){
-                //   colorId = color.id
-                // }
-                if (colorId > 0) {
-                  const pindouColor = mard291[colorId - 1]
-                  if (pindouColor && pindouColor.color !== 'transparent') {
-                    const cx = x * cellSizeExport + cellSizeExport / 2
-                    const cy = y * cellSizeExport + cellSizeExport / 2
-                    const r = cellSizeExport / 2 - 1
-
-                    const gradient = ctx.createRadialGradient(
-                      cx - r * 0.3, cy - r * 0.3, 0,
-                      cx, cy, r
-                    )
-                    gradient.addColorStop(0, lightenColor(pindouColor.color, 30))
-                    gradient.addColorStop(1, pindouColor.dark || pindouColor.color)
-
-                    ctx.fillStyle = gradient
-                    ctx.beginPath()
-                    ctx.arc(cx, cy, r, 0, Math.PI * 2)
-                    ctx.fill()
-
-                    ctx.fillStyle = 'rgba(0,0,0,0.15)'
-                    ctx.beginPath()
-                    ctx.arc(cx, cy, r * 0.25, 0, Math.PI * 2)
-                    ctx.fill()
-                  }
-                }
-              }
+            let cellData = {}
+            if (y < gridData.value.length && x < gridData.value[y].length) {
+              cellData = gridData.value[y][x]
             }
-            // const color = gridData.value[y][x]
-            // let colorId = 0
-            // if(typeof color === 'object'){
-            //   colorId = color.id
-            // }
-            if (showGrid.value) {
-              ctx.strokeStyle = 'rgba(0,0,0,0.1)'
-              ctx.lineWidth = 0.5
-              ctx.strokeRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+            
+            const colorId = cellData?.id || 0
+            
+            // Draw cell background - solid color matching the grid overlay
+            if (colorId > 0) {
+              const pindouColor = mard291[colorId - 1]
+              if (pindouColor && pindouColor.color !== 'transparent') {
+                // Fill with solid color to match display
+                ctx.fillStyle = pindouColor.color
+                ctx.fillRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+              }
+            } else {
+              // Empty cell - transparent or white
+              ctx.fillStyle = 'transparent'
+              ctx.fillRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+            }
+            
+            // Draw grid lines/borders (matching .grid-cell border-color: rgba(0, 0, 0, 0.1))
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)'
+            ctx.lineWidth = 0.5
+            ctx.strokeRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+            
+            // Draw numbers if enabled (matching .cell-number styling)
+            if (showNumbers.value && colorId > 0) {
+              const pindouColor = mard291[colorId - 1]
+              if (pindouColor) {
+                // Convert 6rpx to pixels (assuming 750rpx = screen width)
+                const fontSizePx = cellSizeExport * 0.3
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+                ctx.font = `${fontSizePx}px sans-serif`
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                const centerX = x * cellSizeExport + cellSizeExport / 2
+                const centerY = y * cellSizeExport + cellSizeExport / 2
+                ctx.fillText(pindouColor.name, centerX, centerY)
+              }
             }
           }
         }
@@ -833,21 +847,16 @@ async function convertImage(imagePath) {
   loadingText.value = '正在转换图片...'
   try {
     // 首先验证图片路径是否有效
-    console.log('验证图片路径...')
     const isValid = await validateImagePath(imagePath)
-    console.log('图片验证结果:', isValid)
     
     if (!isValid) {
       throw new Error('图片路径无效或文件不存在: ' + imagePath)
     }
-    
-    console.log('开始处理图片...')
     const result = await processImage(imagePath, {
       maxWidth: gridWidthCells.value,
       maxHeight: gridHeightCells.value,
       canvasId: 'processCanvas'
     })
-    console.log('图片处理结果：', result)
     
     if (!result || !result.grid) {
       throw new Error('图片处理返回空结果')
@@ -880,11 +889,9 @@ async function convertImage(imagePath) {
 // 验证图片路径
 function validateImagePath(imagePath) {
   return new Promise((resolve) => {
-    console.log('验证图片路径:', imagePath)
     uni.getImageInfo({
       src: imagePath,
       success: (res) => {
-        console.log('图片验证成功:', res)
         resolve(true)
       },
       fail: (err) => {
@@ -968,6 +975,7 @@ onShareTimeline(() => {
   flex: 1;
   position: relative;
   overflow: hidden;
+  background-color: #FFFFFF;
 }
 
 .canvas-scroll {
@@ -977,7 +985,7 @@ onShareTimeline(() => {
 
 .canvas-wrapper {
   margin: 40rpx auto;
-  transform-origin: center center;
+  transform-origin: center center; 
 }
 
 .pixel-canvas {
@@ -1021,7 +1029,6 @@ onShareTimeline(() => {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 6rpx;
     color: rgba(0, 0, 0, 0.5);
   }
 }

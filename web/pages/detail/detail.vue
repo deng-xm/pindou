@@ -91,6 +91,14 @@
         <text class="guide-item">4. 建议从中心向外围熨烫，确保持久定型</text>
       </view>
     </view>
+    
+    <!-- Hidden canvas for export -->
+    <canvas 
+      type="2d"
+      id="exportCanvas"
+      canvas-id="exportCanvas"
+      class="export-canvas"
+    ></canvas>
   </view>
 </template>
 
@@ -158,9 +166,139 @@ function editWork() {
 }
 
 function downloadImage() {
-  uni.showToast({
-    title: '图片已保存到相册',
-    icon: 'success'
+  if (!work.value) return
+  
+  uni.showLoading({ title: '生成图片中...' })
+  
+  // Create offscreen canvas for export
+  const query = uni.createSelectorQuery()
+  query.select('#exportCanvas')
+    .fields({ node: true, size: true })
+    .exec((res) => {
+      if (!res || !res[0] || !res[0].node) {
+        // If canvas not found in template, create one dynamically
+        createExportCanvas()
+        return
+      }
+      
+      const canvas = res[0].node
+      const ctx = canvas.getContext('2d')
+      const dpr = wx.getSystemInfoSync().pixelRatio
+      
+      const width = work.value.width
+      const height = work.value.height
+      const cellSizeExport = 20 // Fixed size for export
+      
+      const exportWidth = width * cellSizeExport
+      const exportHeight = height * cellSizeExport
+      
+      canvas.width = exportWidth * dpr
+      canvas.height = exportHeight * dpr
+      ctx.scale(dpr, dpr)
+      
+      // Draw white background
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, exportWidth, exportHeight)
+      
+      // Draw each cell
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let colorId = 0
+          if (y < work.value.gridData.length && x < work.value.gridData[y].length) {
+            colorId = work.value.gridData[y][x]
+          }
+          
+          if (colorId > 0) {
+            const pindouColor = mard291[colorId - 1]
+            if (pindouColor && pindouColor.color !== 'transparent') {
+              ctx.fillStyle = pindouColor.color
+              ctx.fillRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+            }
+          }
+          
+          // Draw grid lines
+          ctx.strokeStyle = 'rgba(0,0,0,0.1)'
+          ctx.lineWidth = 0.5
+          ctx.strokeRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
+        }
+      }
+      
+      setTimeout(() => {
+        wx.canvasToTempFilePath({
+          canvas: canvas,
+          x: 0,
+          y: 0,
+          width: exportWidth,
+          height: exportHeight,
+          destWidth: exportWidth,
+          destHeight: exportHeight,
+          fileType: 'png',
+          quality: 1,
+          success: (res) => {
+            saveImageToAlbum(res.tempFilePath)
+          },
+          fail: (err) => {
+            console.error('导出失败:', err)
+            uni.hideLoading()
+            uni.showToast({
+              title: '导出失败',
+              icon: 'none'
+            })
+          }
+        })
+      }, 200)
+    })
+}
+
+function createExportCanvas() {
+  // Fallback: use the imageProcessor utility
+  import('@/utils/imageProcessor').then(module => {
+    module.exportAsImage(work.value.gridData, {
+      cellSize: 20,
+      showGrid: true,
+      backgroundColor: '#FFFFFF'
+    }).then(filePath => {
+      saveImageToAlbum(filePath)
+    }).catch(err => {
+      console.error('导出失败:', err)
+      uni.hideLoading()
+      uni.showToast({
+        title: '导出失败',
+        icon: 'none'
+      })
+    })
+  })
+}
+
+function saveImageToAlbum(filePath) {
+  wx.saveImageToPhotosAlbum({
+    filePath: filePath,
+    success: () => {
+      uni.hideLoading()
+      uni.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+    },
+    fail: (err) => {
+      uni.hideLoading()
+      if (err.errMsg.includes('auth deny')) {
+        wx.showModal({
+          title: '提示',
+          content: '需要您授权保存图片到相册',
+          success: (res) => {
+            if (res.confirm) {
+              wx.openSetting()
+            }
+          }
+        })
+      } else {
+        uni.showToast({
+          title: '保存失败',
+          icon: 'none'
+        })
+      }
+    }
   })
 }
 
@@ -335,5 +473,14 @@ function toggleFavorite() {
     color: $text-color-secondary;
     line-height: 2;
   }
+}
+
+.export-canvas {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 </style>
