@@ -378,21 +378,6 @@ function updateCanvasSize(config) {
   gridHeightCells.value = Math.max(5, Math.min(100, height))
   gridWidth.value = gridWidthCells.value * cellSizeNew
   gridHeight.value = gridHeightCells.value * cellSizeNew
-  // config?.gridData && (gridData.value = config?.gridData)
-  // const gridDataLen=gridData.value.length
-  // let gridDataTemp = Array.from(gridData.value)
-  // for(let y=0;y<gridDataLen;y++){
-  //   for(let x=0;x<gridDataLen;x++){
-  //     if(y===0||y===gridDataLen-1&&x>0){
-  //       gridDataTemp[y][x] = { name: y===0?x:(y === gridDataLen - 1&&x>0 ? x : y+1),id:0}
-  //     }
-  //     if(x===0||x===gridDataLen-1&&y>0){
-  //       gridDataTemp[y][x] = { name:x===0?y:(x === gridDataLen - 1&&y>0 ? y : x+1),id:0}
-  //     }
-  //   }
-  // }
-  // gridData.value = gridDataTemp
-  // console.log('gridData2222:',gridData.value)
 }
 
 function getCellName(y, x) {
@@ -708,19 +693,19 @@ async function exportCanvasToImage() {
             }
           }
         }
-
+        console.log('图片width:', exportWidth, '图片height:', exportHeight)
         await new Promise(r => setTimeout(r, 200))
 
         wx.canvasToTempFilePath({
           canvas: canvas,
           x: 0,
           y: 0,
-          width: exportWidth,
-          height: exportHeight,
-          destWidth: exportWidth,
-          destHeight: exportHeight,
+          width: exportWidth * 10,
+          height: exportHeight * 10,
+          destWidth: exportWidth * 10,
+          destHeight: exportHeight * 10,
           fileType: 'png',
-          quality: 1,
+          quality: 10,
           success: (res) => {
             resolve(res)
           },
@@ -732,14 +717,14 @@ async function exportCanvasToImage() {
   })
 }
 
-function lightenColor(hex, percent) {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const amt = Math.round(2.55 * percent)
-  const R = Math.min(255, (num >> 16) + amt)
-  const G = Math.min(255, ((num >> 8) & 0x00FF) + amt)
-  const B = Math.min(255, (num & 0x0000FF) + amt)
-  return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
-}
+// function lightenColor(hex, percent) {
+//   const num = parseInt(hex.replace('#', ''), 16)
+//   const amt = Math.round(2.55 * percent)
+//   const R = Math.min(255, (num >> 16) + amt)
+//   const G = Math.min(255, ((num >> 8) & 0x00FF) + amt)
+//   const B = Math.min(255, (num & 0x0000FF) + amt)
+//   return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
+// }
 
 function saveImageToAlbum(filePath) {
   return new Promise((resolve, reject) => {
@@ -766,21 +751,21 @@ function saveImageToAlbum(filePath) {
   })
 }
 
-// 导出图片
-function exportImage() {
-  showMenu.value = false
-  isLoading.value = true
-  loadingText.value = '正在生成图片...'
+// // 导出图片
+// function exportImage() {
+//   showMenu.value = false
+//   isLoading.value = true
+//   loadingText.value = '正在生成图片...'
   
-  // 实际需要使用canvas导出
-  setTimeout(() => {
-    isLoading.value = false
-    uni.showToast({
-      title: '图片已保存到相册',
-      icon: 'success'
-    })
-  }, 1000)
-}
+//   // 实际需要使用canvas导出
+//   setTimeout(() => {
+//     isLoading.value = false
+//     uni.showToast({
+//       title: '图片已保存到相册',
+//       icon: 'success'
+//     })
+//   }, 1000)
+// }
 
 // 导出PDF
 function exportPdf() {
