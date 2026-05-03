@@ -85,6 +85,32 @@
             </view>
           </view>
         </view>
+        <!-- 颜色统计 -->
+      <view class="color-statistics">
+        <view class="stats-header">
+          <text class="stats-title">MARD</text>
+          <text class="stats-summary">（ {{ colorStatistics.totalPixels }}）</text>
+        </view>
+        <scroll-view class="stats-list" scroll-y v-if="colorStatistics.colors.length > 0">
+          <view 
+            v-for="stat in colorStatistics.colors" 
+            :key="stat.id"
+            class="stat-item"
+          >
+            <view class="stat-color-info">
+              <view 
+                class="stat-color-swatch" 
+                :style="{ backgroundColor: stat.color }"
+              >{{ stat.name }}</view>
+              <!-- <text class="stat-color-name">{{ stat.name }}</text> -->
+            </view>
+            <text class="stat-count">{{ '(' + stat.count + ')' }}</text>
+          </view>
+        </scroll-view>
+        <view class="stats-empty" v-else>
+          <text>暂无颜色数据</text>
+        </view>
+      </view>
       </scroll-view>
       
       <!-- 缩放控制 -->
@@ -282,6 +308,44 @@ const scalePercent = computed(() => {
   console.log('scalePercent val:', val)
   if (typeof val !== 'number' || isNaN(val)) return 100
   return Math.round(val * 100)
+})
+
+// 颜色统计
+const colorStatistics = computed(() => {
+  const colorCount = new Map()
+  let totalCount = 0
+  
+  // Count each color usage
+  for (let y = 0; y < gridData.value.length; y++) {
+    for (let x = 0; x < gridData.value[y].length; x++) {
+      const cell = gridData.value[y][x]
+      const colorId = cell?.id || 0
+      if (colorId > 0) {
+        const count = colorCount.get(colorId) || 0
+        colorCount.set(colorId, count + 1)
+        totalCount++
+      }
+    }
+  }
+  
+  // Convert to array with color info and sort by count (descending)
+  const stats = Array.from(colorCount.entries())
+    .map(([colorId, count]) => {
+      const color = mard291[colorId - 1]
+      return {
+        id: colorId,
+        name: color?.name || `颜色${colorId}`,
+        color: color?.color || '#CCCCCC',
+        count: count
+      }
+    })
+    .sort((a, b) => b.count - a.count)
+  
+  return {
+    totalColors: stats.length,
+    totalPixels: totalCount,
+    colors: stats
+  }
 })
 
 // 尺寸预设
@@ -694,25 +758,34 @@ async function exportCanvasToImage() {
           }
         }
         console.log('图片width:', exportWidth, '图片height:', exportHeight)
-        await new Promise(r => setTimeout(r, 200))
-
-        wx.canvasToTempFilePath({
-          canvas: canvas,
-          x: 0,
-          y: 0,
-          width: exportWidth * 10,
-          height: exportHeight * 10,
-          destWidth: exportWidth * 10,
-          destHeight: exportHeight * 10,
-          fileType: 'png',
-          quality: 10,
-          success: (res) => {
-            resolve(res)
-          },
-          fail: (err) => {
-            reject(err)
+        
+        // Use setTimeout instead of await to avoid promise issues in callback
+        setTimeout(() => {
+          try {
+            wx.canvasToTempFilePath({
+              canvas: canvas,
+              x: 0,
+              y: 0,
+              width: exportWidth,
+              height: exportHeight,
+              destWidth: exportWidth,
+              destHeight: exportHeight,
+              fileType: 'png',
+              quality: 1,
+              success: (res) => {
+                console.log('导出成功:', res.tempFilePath)
+                resolve(res)
+              },
+              fail: (err) => {
+                console.error('canvasToTempFilePath 失败:', err)
+                reject(new Error('图片导出失败: ' + (err.errMsg || '未知错误')))
+              }
+            })
+          } catch (exportErr) {
+            console.error('导出异常:', exportErr)
+            reject(exportErr)
           }
-        })
+        }, 300)
       })
   })
 }
@@ -1051,6 +1124,89 @@ onShareTimeline(() => {
   background: #16213e;
   padding: 20rpx 0;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+}
+
+.color-statistics {
+  padding: 20rpx;
+  margin: 0 20rpx 20rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12rpx;
+  width: 100%;
+  margin-top: -398px;
+  
+  .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16rpx;
+    padding-bottom: 12rpx;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .stats-title {
+      font-size: 28rpx;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .stats-summary {
+      font-size: 22rpx;
+      color: #000;
+    }
+  }
+  
+  .stats-list {
+    max-height: 300rpx;
+    
+    .stat-item {
+      display: flex;
+      float: left;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12rpx 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      margin-right: 12rpx;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .stat-color-info {
+        display: flex;
+        align-items: center;
+        gap: 12rpx;
+        flex: 1;
+        
+        .stat-color-swatch {
+          width: 40rpx;
+          height: 40rpx;
+          border-radius: 8rpx;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          flex-shrink: 0;
+          font-size: 20rpx;
+        }
+        
+        .stat-color-name {
+          font-size: 24rpx;
+          color: rgba(255, 255, 255, 0.9);
+        }
+      }
+      
+      .stat-count {
+        font-size: 24rpx;
+        color: $text-color;
+      }
+    }
+  }
+  
+  .stats-empty {
+    text-align: center;
+    padding: 40rpx 0;
+    
+    text {
+      font-size: 24rpx;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
 }
 
 .tool-selector {
