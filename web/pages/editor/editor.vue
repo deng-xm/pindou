@@ -86,10 +86,10 @@
           </view>
         </view>
         <!-- 颜色统计 -->
-      <view class="color-statistics">
+      <view class="color-statistics" :style="{ width: gridWidth + 'px' }">
         <view class="stats-header">
           <text class="stats-title">MARD</text>
-          <text class="stats-summary">（ {{ colorStatistics.totalPixels }}）</text>
+          <text class="stats-summary">（ 总：{{ colorStatistics.totalPixels }}）</text>
         </view>
         <scroll-view class="stats-list" scroll-y v-if="colorStatistics.colors.length > 0">
           <view 
@@ -440,8 +440,11 @@ function updateCanvasSize(config) {
   const cellSizeNew = config?.cellSize || cellSize.value
   gridWidthCells.value = Math.max(5, Math.min(100, width))
   gridHeightCells.value = Math.max(5, Math.min(100, height))
-  gridWidth.value = gridWidthCells.value * cellSizeNew
-  gridHeight.value = gridHeightCells.value * cellSizeNew
+  const gridH = gridData.value.length*cellSizeNew
+  const row = gridData.value?.[0]
+  const gridw = row.length*cellSizeNew
+  gridWidth.value = gridw
+  gridHeight.value = gridH
 }
 
 function getCellName(y, x) {
@@ -1127,16 +1130,13 @@ onShareTimeline(() => {
 }
 
 .color-statistics {
-  padding: 20rpx;
+  padding: 0 20rpx 20rpx 20rpx;
   margin: 0 20rpx 20rpx;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12rpx;
   width: 100%;
-  margin-top: -398px;
   
   .stats-header {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 16rpx;
     padding-bottom: 12rpx;
