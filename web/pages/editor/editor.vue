@@ -464,6 +464,10 @@ function getCellStyle(colorId, x, y) {
   const color = colorId > 0 ? mard291[colorId - 1] : null
   const bgColor = color ? color.color : 'transparent'
   const borderColor = showGrid.value ? 'rgba(0,0,0,0.1)' : 'transparent'
+  // 设置字体颜色（根据背景色自动调整）
+  const bgColorNumber = color?color.color.replace('#', ''):'FFFFFF'
+  const midColor='7FFFFF'
+  
   
   return {
     width: cellSize.value + 'px',
@@ -472,6 +476,7 @@ function getCellStyle(colorId, x, y) {
     borderColor: borderColor,
     borderWidth: showGrid.value ? '0.5px' : '0',
     fontSize: cellSize.value * 0.3 + 'px',
+    color: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white',
   }
 }
 
@@ -769,12 +774,12 @@ async function exportCanvasToImage() {
               canvas: canvas,
               x: 0,
               y: 0,
-              width: exportWidth,
-              height: exportHeight,
-              destWidth: exportWidth,
-              destHeight: exportHeight,
+              width: exportWidth * 10,
+              height: exportHeight * 10,
+              destWidth: exportWidth * 10,
+              destHeight: exportHeight * 10,
               fileType: 'png',
-              quality: 1,
+              quality: 10,
               success: (res) => {
                 console.log('导出成功:', res.tempFilePath)
                 resolve(res)
@@ -1090,7 +1095,7 @@ onShareTimeline(() => {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: rgba(0, 0, 0, 0.5);
+    // color: rgba(0, 0, 0, 0.5);
   }
 }
 
