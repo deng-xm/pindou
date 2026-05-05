@@ -113,7 +113,7 @@
                 :style="{ backgroundColor: stat.color}"
               >
               <text :style="{color: stat.textColor }">{{ stat.name }}</text>
-              <text :style="{color: stat.countTextColor }">{{ '  ' + '(' + stat.count + ')'  }}</text>
+              <text :style="{color: stat.countTextColor }">{{ '\u00A0' + '\u00A0'+ '\u00A0' + '(' + stat.count + ')'  }}</text>
               </view>
               <!-- <text class="stat-color-name">{{ stat.name }}</text> -->
             </view>
