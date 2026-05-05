@@ -714,8 +714,8 @@ async function exportCanvasToImage() {
         const ctx = canvas.getContext('2d')
         const dpr = wx.getSystemInfoSync().pixelRatio
 
-        const width = gridWidthCells.value
-        const height = gridHeightCells.value
+        const width = gridWidthCells.value + 6
+        const height = gridHeightCells.value + 6
         const cellSizeExport = cellSize.value // Use the same cell size as displayed
 
         const exportWidth = width * cellSizeExport
@@ -738,7 +738,6 @@ async function exportCanvasToImage() {
             }
             
             const colorId = cellData?.id || 0
-            
             // Draw cell background - solid color matching the grid overlay
             if (colorId > 0) {
               const pindouColor = mard291[colorId - 1]
@@ -759,21 +758,33 @@ async function exportCanvasToImage() {
             ctx.strokeRect(x * cellSizeExport, y * cellSizeExport, cellSizeExport, cellSizeExport)
             
             // Draw numbers if enabled (matching .cell-number styling)
-            if (showNumbers.value && colorId > 0) {
-              const pindouColor = mard291[colorId - 1]
+            const row = gridData.value[y]
+            if ((showNumbers.value&&colorId > 0)||((y===0||y===gridData.value.length-1)&&x>0&&x<row.length-1)||((x===0||x===row.length-1)&&y>0&&y<gridData.value.length-1)) {
+              // Convert 6rpx to pixels (assuming 750rpx = screen width)
+              const fontSizePx = cellSizeExport * 0.3
+              // 设置字体颜色（根据背景色自动调整）
+              ctx.font = `${fontSizePx}px sans-serif`
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+              const centerX = x * cellSizeExport + cellSizeExport / 2
+              const centerY = y * cellSizeExport + cellSizeExport / 2
+              const pindouColor = colorId ? mard291[colorId - 1] : null
               if (pindouColor) {
-                // Convert 6rpx to pixels (assuming 750rpx = screen width)
-                const fontSizePx = cellSizeExport * 0.3
-                // 设置字体颜色（根据背景色自动调整）
                 const bgColorNumber = pindouColor.color?.replace('#', '') || 'FFFFFF'
                 const midColor = '7FFFFF'
                 ctx.fillStyle = parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white'
-                ctx.font = `${fontSizePx}px sans-serif`
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'middle'
-                const centerX = x * cellSizeExport + cellSizeExport / 2
-                const centerY = y * cellSizeExport + cellSizeExport / 2
                 ctx.fillText(pindouColor.name, centerX, centerY)
+                continue
+              }
+              if((y===0||y===gridData.value.length-1)&&x>0&&x<row.length-1){
+                ctx.fillStyle = 'black'
+                ctx.fillText(x, centerX, centerY)
+                continue
+              }
+              if((x===0||x===row.length-1)&&y>0&&y<gridData.value.length-1){
+                ctx.fillStyle = 'black'
+                ctx.fillText(y, centerX, centerY)
+                continue
               }
             }
           }
