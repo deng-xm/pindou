@@ -97,7 +97,8 @@
         <!-- 颜色统计 -->
       <view class="color-statistics" :style="{ width: gridWidth + 'px' }">
         <view class="stats-header">
-          <text class="stats-title">MARD</text>
+          <text class="tool-icon">🎨</text>
+          <text class="stats-title">HuoHuo | MARD</text>
           <text class="stats-summary">（ 总：{{ colorStatistics.totalPixels }}）</text>
         </view>
         <scroll-view class="stats-list" scroll-y v-if="colorStatistics.colors.length > 0">
@@ -109,11 +110,14 @@
             <view class="stat-color-info">
               <view 
                 class="stat-color-swatch" 
-                :style="{ backgroundColor: stat.color }"
-              >{{ stat.name }}</view>
+                :style="{ backgroundColor: stat.color}"
+              >
+              <text :style="{color: stat.textColor }">{{ stat.name }}</text>
+              <text :style="{color: stat.countTextColor }">{{ '  ' + '(' + stat.count + ')'  }}</text>
+              </view>
               <!-- <text class="stat-color-name">{{ stat.name }}</text> -->
             </view>
-            <text class="stat-count">{{ '(' + stat.count + ')' }}</text>
+            <!-- <text class="stat-count">{{ '(' + stat.count + ')' }}</text> -->
           </view>
         </scroll-view>
         <view class="stats-empty" v-else>
@@ -342,10 +346,15 @@ const colorStatistics = computed(() => {
   const stats = Array.from(colorCount.entries())
     .map(([colorId, count]) => {
       const color = mard291[colorId - 1]
+      // 设置字体颜色（根据背景色自动调整）
+      const bgColorNumber = color?.color?.replace('#', '')||'FFFFFF'
+      const midColor='7FFFFF'
       return {
         id: colorId,
         name: color?.name || `颜色${colorId}`,
-        color: color?.color || '#CCCCCC',
+        color: color?.color || 'transparent',
+        textColor: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white',
+        countTextColor: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.9)',
         count: count
       }
     })
@@ -357,14 +366,6 @@ const colorStatistics = computed(() => {
     colors: stats
   }
 })
-
-// 尺寸预设
-const sizePresets = [
-  { label: '小 15x15', w: 15, h: 15 },
-  { label: '中 29x29', w: 29, h: 29 },
-  { label: '大 41x41', w: 41, h: 41 },
-  { label: '超大 51x51', w: 51, h: 51 }
-]
 
 // 初始化
 onMounted(() => {
@@ -797,10 +798,10 @@ async function exportCanvasToImage() {
               canvas: canvas,
               x: 0,
               y: 0,
-              width: exportWidth * 10,
-              height: exportHeight * 10,
-              destWidth: exportWidth * 10,
-              destHeight: exportHeight * 10,
+              width: exportWidth * 4,
+              height: exportHeight * 4,
+              destWidth: exportWidth * 4,
+              destHeight: exportHeight * 4,
               fileType: 'png',
               quality: 10,
               success: (res) => {
@@ -1215,12 +1216,15 @@ onShareTimeline(() => {
         flex: 1;
         
         .stat-color-swatch {
-          width: 40rpx;
+          // width: 40rpx;
+          padding: 4rpx;
+          line-height: 40rpx;
           height: 40rpx;
           border-radius: 8rpx;
           border: 1px solid rgba(255, 255, 255, 0.2);
           flex-shrink: 0;
           font-size: 20rpx;
+          box-shadow: 1px 1px 3px 1px #CCC;
         }
         
         .stat-color-name {
