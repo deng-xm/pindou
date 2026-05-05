@@ -31,56 +31,65 @@
         enhanced 
         :show-scrollbar="false"
       >
+        <!-- Wrapper with actual scaled dimensions for proper scrolling -->
         <view 
-          id="canvasWrapper"
-          class="canvas-wrapper" 
+          class="canvas-scroll-wrapper"
           :style="{ 
             width: gridWidth + 'px', 
-            height: gridHeight + 'px',
-            transform: `scale(${canvasScale})`
+            height: gridHeight + 'px'
           }"
-          @touchstart="handleTouchStart"
-          @touchmove="handleTouchMove"
-          @touchend="handleTouchEnd"
         >
-          <canvas 
-            type="2d"
-            id="mainCanvas"
-            canvas-id="mainCanvas"
-            class="pixel-canvas"
-            :style="{ width: gridWidth + 'px', height: gridHeight + 'px' }"
-          ></canvas>
-          
-          <!-- 隐藏的处理 canvas -->
-          <canvas 
-            type="2d"
-            id="processCanvas"
-            class="process-canvas"
-          ></canvas>
-          
-          <!-- 像素格子覆盖层 -->
-          <view class="grid-overlay">
-            <view 
-              v-for="(row, y) in gridData" 
-              :key="y"
-              class="grid-row"
-            >
+          <!-- Inner container with transform scale -->
+          <view 
+            id="canvasWrapper"
+            class="canvas-wrapper" 
+            :style="{ 
+              transform: `scale(${canvasScale})`,
+              transformOrigin: 'top left'
+            }"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
+          >
+            <canvas 
+              type="2d"
+              id="mainCanvas"
+              canvas-id="mainCanvas"
+              class="pixel-canvas"
+              :style="{ width: gridWidth + 'px', height: gridHeight + 'px' }"
+            ></canvas>
+            
+            <!-- 隐藏的处理 canvas -->
+            <canvas 
+              type="2d"
+              id="processCanvas"
+              class="process-canvas"
+            ></canvas>
+            
+            <!-- 像素格子覆盖层 -->
+            <view class="grid-overlay">
               <view 
-                v-for="(cell, x) in row" 
-                :key="x"
-                class="grid-cell"
-                :class="{ 
-                  'cell-active': currentCell.x === x && currentCell.y === y,
-                  'cell-filled': cell.id > 0
-                }"
-                :style="getCellStyle(cell.id, x, y)"
-                @tap="handleCellTap(x, y)"
-                @longpress="handleCellLongPress(x, y)"
+                v-for="(row, y) in gridData" 
+                :key="y"
+                class="grid-row"
               >
-                <text 
-                  v-if="showNumbers&&(cell.name||x==0||y==0||x==row.length-1||y==gridData.length-1)"
-                  class="cell-number"
-                >{{ getCellName(y,x) }}</text>
+                <view 
+                  v-for="(cell, x) in row" 
+                  :key="x"
+                  class="grid-cell"
+                  :class="{ 
+                    'cell-active': currentCell.x === x && currentCell.y === y,
+                    'cell-filled': cell.id > 0
+                  }"
+                  :style="getCellStyle(cell.id, x, y)"
+                  @tap="handleCellTap(x, y)"
+                  @longpress="handleCellLongPress(x, y)"
+                >
+                  <text 
+                    v-if="showNumbers&&(cell.name||x==0||y==0||x==row.length-1||y==gridData.length-1)"
+                    class="cell-number"
+                  >{{ getCellName(y,x) }}</text>
+                </view>
               </view>
             </view>
           </view>
@@ -251,11 +260,13 @@ import CanvasSetting from '@/components/canvasSetting.vue'
 let pendingImage = null
 
 // 画布配置
-const gridWidth = ref(1000)
-const gridHeight = ref(1000)
+const gridWidth = ref(290)
+const gridHeight = ref(290)
+const gridWidthOneX = ref(290)
+const gridHeightOneX = ref(290)
 const cellSize = ref(10)
-const gridWidthCells = ref(100)
-const gridHeightCells = ref(100)
+const gridWidthCells = ref(29)
+const gridHeightCells = ref(29)
 
 // 画布数据
 const gridData = ref([])
@@ -277,8 +288,8 @@ const showMenu = ref(false)
 const showSettingsModal = ref(false)
 const isLoading = ref(false)
 const loadingText = ref('')
-const canvasWidth = ref(100)
-const canvasHeight = ref(100)
+const canvasWidth = ref(29)
+const canvasHeight = ref(29)
 const settingButtonText = ref('应用')
 const applyType = ref('updateCanvas')
 const applyImgPath = ref('')
@@ -305,7 +316,6 @@ const currentColor = computed(() => {
 // 缩放百分比显示
 const scalePercent = computed(() => {
   const val = canvasScale.value
-  console.log('scalePercent val:', val)
   if (typeof val !== 'number' || isNaN(val)) return 100
   return Math.round(val * 100)
 })
@@ -396,15 +406,9 @@ onMounted(() => {
   // 延迟处理待转换的图片
   if (pendingImage) {
     nextTick(() => {
-      setTimeout(() => {
-        if (pendingImage) {
-          const image = pendingImage
-          pendingImage = null
-          beforeConvertImage(image)
-        } else {
-          console.log('pendingImage已为空')
-        }
-      }, 500)
+      const image = pendingImage
+      pendingImage = null
+      beforeConvertImage(image)
     })
   } else {
     console.log('没有待处理的图片')
@@ -438,13 +442,16 @@ function updateCanvasSize(config) {
   const width = config?.width || canvasWidth.value
   const height = config?.height || canvasHeight.value
   const cellSizeNew = config?.cellSize || cellSize.value
-  gridWidthCells.value = Math.max(5, Math.min(100, width))
-  gridHeightCells.value = Math.max(5, Math.min(100, height))
-  const gridH = gridData.value.length*cellSizeNew
-  const row = gridData.value?.[0]
-  const gridw = row.length*cellSizeNew
+  gridWidthCells.value = width
+  gridHeightCells.value = height
+  const gridH = width * cellSizeNew
+  // const row = gridData.value?.[0]
+  const gridw = height * cellSizeNew
   gridWidth.value = gridw
   gridHeight.value = gridH
+  gridWidthOneX.value = gridw
+  gridHeightOneX.value = gridH
+  canvasScale.value = 1
 }
 
 function getCellName(y, x) {
@@ -467,8 +474,6 @@ function getCellStyle(colorId, x, y) {
   // 设置字体颜色（根据背景色自动调整）
   const bgColorNumber = color?color.color.replace('#', ''):'FFFFFF'
   const midColor='7FFFFF'
-  
-  
   return {
     width: cellSize.value + 'px',
     height: cellSize.value + 'px',
@@ -568,10 +573,15 @@ function handleTouchEnd(e) {
 // 缩放控制
 function zoomIn() {
   canvasScale.value = Math.min(3, canvasScale.value + 0.25)
+  gridWidth.value = gridWidthOneX.value * canvasScale.value
+  gridHeight.value = gridHeightOneX.value * canvasScale.value
+  console.log('zoomIn:', canvasScale.value, gridWidth.value, gridHeight.value)
 }
 
 function zoomOut() {
   canvasScale.value = Math.max(0.5, canvasScale.value - 0.25)
+  gridWidth.value=gridWidthOneX.value * canvasScale.value
+  gridHeight.value=gridHeightOneX.value * canvasScale.value
 }
 
 // 清空画布
@@ -754,7 +764,10 @@ async function exportCanvasToImage() {
               if (pindouColor) {
                 // Convert 6rpx to pixels (assuming 750rpx = screen width)
                 const fontSizePx = cellSizeExport * 0.3
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+                // 设置字体颜色（根据背景色自动调整）
+                const bgColorNumber = pindouColor.color?.replace('#', '') || 'FFFFFF'
+                const midColor = '7FFFFF'
+                ctx.fillStyle = parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white'
                 ctx.font = `${fontSizePx}px sans-serif`
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
@@ -765,7 +778,6 @@ async function exportCanvasToImage() {
             }
           }
         }
-        console.log('图片width:', exportWidth, '图片height:', exportHeight)
         
         // Use setTimeout instead of await to avoid promise issues in callback
         setTimeout(() => {
@@ -781,7 +793,6 @@ async function exportCanvasToImage() {
               fileType: 'png',
               quality: 10,
               success: (res) => {
-                console.log('导出成功:', res.tempFilePath)
                 resolve(res)
               },
               fail: (err) => {
@@ -930,9 +941,13 @@ async function convertImage(imagePath) {
     
     workTitle.value = '图片转换'
     gridData.value = result.grid
-    gridWidthCells.value = result.width
+    console.log('width', result.width, 'height', result.height)
+    gridWidthCells.value = result.width 
     gridHeightCells.value = result.height
-    updateCanvasSize()
+    gridWidth.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
+    gridHeight.value = (result.height + 6) * cellSize.value
+    gridWidthOneX.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
+    gridHeightOneX.value = (result.height + 6) * cellSize.value
     saveToHistory()
     
     uni.showToast({
@@ -1049,9 +1064,16 @@ onShareTimeline(() => {
   height: 100%;
 }
 
-.canvas-wrapper {
+.canvas-scroll-wrapper {
+  position: relative;
   margin: 40rpx auto;
-  transform-origin: center center; 
+}
+
+.canvas-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
 }
 
 .pixel-canvas {

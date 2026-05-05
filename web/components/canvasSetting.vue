@@ -122,8 +122,8 @@ function applyPreset(preset) {
 }
 // 应用设置
 function applySettings() {
-  const newWidth = Math.max(5, Math.min(100, canvasWidth.value))
-  const newHeight = Math.max(5, Math.min(100, canvasHeight.value))
+  const newWidth = canvasWidth.value
+  const newHeight = canvasHeight.value
   
   // 调整画布大小
   const oldData = props.gridData
