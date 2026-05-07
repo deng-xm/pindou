@@ -213,10 +213,10 @@
     <view class="menu-overlay" v-if="showMenu" @tap="showMenu = false">
       <view class="menu-panel" @tap.stop>
         <view class="menu-header">更多操作</view>
-        <view class="menu-item" @tap="saveWorkAction">
+        <!-- <view class="menu-item" @tap="saveWorkAction">
           <text class="menu-icon">💾</text>
           <text class="menu-text">保存作品</text>
-        </view>
+        </view> -->
         <view class="menu-item" @tap="generatePoster">
           <text class="menu-icon">📥</text>
           <text class="menu-text">导出图片</text>
@@ -835,37 +835,39 @@ async function exportCanvasToImage() {
         ctx.font = 'bold 16px sans-serif'
         ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
-        ctx.fillText('HuoHuo | MARD', statsPadding + logoSize + 8, statsStartY + 15)
+        ctx.fillText('HuoHuo | MARD', statsPadding + logoSize + 8, statsStartY + 17)
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
         ctx.font = '14px sans-serif'
-        ctx.fillText(`（ 总：${colorStatistics.value.totalPixels}）`, statsPadding + logoSize + 90, statsStartY + 15)
+        ctx.textBaseline = 'middle'
+        ctx.fillText(`（ 总：${colorStatistics.value.totalPixels}）`, statsPadding + logoSize + 150, statsStartY + 17)
         
         // Draw each color stat
         currentY = statsStartY + 50
         const swatchHeight = 20
         const swatchPadding = 4
-        
+        const swatchX = statsPadding
+        // const swatchY = currentY - swatchHeight / 2
+        let itemX=swatchX
+        let itemY=currentY - swatchHeight / 2
         for (let i = 0; i < maxStatsToShow; i++) {
           const stat = colorStatistics.value.colors[i]
           
           // Draw color swatch background
           ctx.fillStyle = stat.color
-          const swatchX = statsPadding
-          const swatchY = currentY - swatchHeight / 2
-          ctx.fillRect(swatchX, swatchY, 60, swatchHeight)
+          ctx.fillRect(itemX, itemY, 70, swatchHeight)
           
           // Draw border
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
           ctx.lineWidth = 1
-          ctx.strokeRect(swatchX, swatchY, 60, swatchHeight)
+          ctx.strokeRect(itemX, itemY, 70, swatchHeight)
           
           // Draw shadow effect
           ctx.shadowColor = '#CCC'
           ctx.shadowBlur = 3
           ctx.shadowOffsetX = 1
           ctx.shadowOffsetY = 1
-          ctx.fillRect(swatchX, swatchY, 60, swatchHeight)
+          ctx.fillRect(itemX, itemY, 70, swatchHeight)
           ctx.shadowColor = 'transparent'
           ctx.shadowBlur = 0
           ctx.shadowOffsetX = 0
@@ -876,12 +878,21 @@ async function exportCanvasToImage() {
           ctx.font = '10px sans-serif'
           ctx.textAlign = 'left'
           ctx.textBaseline = 'middle'
-          ctx.fillText(stat.name, swatchX + swatchPadding + 2, swatchY + swatchHeight / 2)
+          const metrics = ctx.measureText(stat.name);
+          const textWidth = metrics.width;
+          ctx.fillText(stat.name, itemX + swatchPadding + 2, itemY + swatchHeight / 2)
           
           // Draw count inside swatch
+          const countX = itemX + swatchPadding + 2 + textWidth
           ctx.fillStyle = stat.countTextColor || 'black'
-          ctx.fillText('\u00A0\u00A0\u00A0(' + stat.count + ')', swatchX + swatchPadding + 2, swatchY + swatchHeight / 2)
-          
+          ctx.fillText('\u00A0\u00A0\u00A0(' + stat.count + ')', countX, itemY + swatchHeight / 2)
+  
+          if ((itemX + 80 + 70) > exportWidth) {
+            itemX = swatchX
+            itemY += swatchHeight + 10
+          } else {
+            itemX = itemX + 80
+          }
           currentY += lineHeight
         }
         
@@ -956,22 +967,6 @@ function saveImageToAlbum(filePath) {
     })
   })
 }
-
-// // 导出图片
-// function exportImage() {
-//   showMenu.value = false
-//   isLoading.value = true
-//   loadingText.value = '正在生成图片...'
-  
-//   // 实际需要使用canvas导出
-//   setTimeout(() => {
-//     isLoading.value = false
-//     uni.showToast({
-//       title: '图片已保存到相册',
-//       icon: 'success'
-//     })
-//   }, 1000)
-// }
 
 // 导出PDF
 function exportPdf() {
