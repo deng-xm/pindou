@@ -5,6 +5,9 @@ onLaunch(() => {
   console.log('App Launch')
   // 初始化本地存储
   initStorage()
+  
+  // 检查并请求隐私授权
+  checkPrivacyAuthorization()
 })
 
 onShow(() => {
@@ -40,6 +43,33 @@ function initStorage() {
   } catch (e) {
     console.error('初始化存储失败:', e)
   }
+}
+
+// 检查隐私授权
+function checkPrivacyAuthorization() {
+  // #ifdef MP-WEIXIN
+  if (wx.getPrivacySetting) {
+    wx.getPrivacySetting({
+      success: (res) => {
+        console.log('隐私协议状态:', res)
+        if (res.needAuthorization) {
+          // 需要用户授权，显示隐私协议弹窗
+          wx.requirePrivacyAuthorize({
+            success: () => {
+              console.log('用户同意隐私协议')
+            },
+            fail: (err) => {
+              console.log('用户拒绝隐私协议:', err)
+            }
+          })
+        }
+      },
+      fail: (err) => {
+        console.log('获取隐私设置失败:', err)
+      }
+    })
+  }
+  // #endif
 }
 </script>
 

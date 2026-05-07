@@ -43,7 +43,10 @@
             /* ios打包配置 */
             "ios" : {},
             /* SDK配置 */
-            "sdkConfigs" : {}
+            "sdkConfigs" : {},
+            "splashscreen" : {
+                "useOriginalMsgbox" : true
+            }
         }
     },
     /* 快应用特有相关 */
@@ -51,6 +54,7 @@
     /* 小程序特有相关 */
     "mp-weixin" : {
         "appid" : "wx8bbd743f32aaf64b",
+        "usePrivacyCheck" : true,
         "setting" : {
             "urlCheck" : false,
             "postcss" : true,
@@ -58,7 +62,7 @@
             "minified" : true
         },
         "usingComponents" : true,
-        "lazyCodeLoading": "requiredComponents"
+        "lazyCodeLoading" : "requiredComponents"
     },
     "mp-alipay" : {
         "usingComponents" : true
