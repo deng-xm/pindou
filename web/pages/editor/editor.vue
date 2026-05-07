@@ -23,7 +23,7 @@
     </view>
 
     <!-- 画布区域 -->
-    <view class="canvas-container">
+    <view class="canvas-container" id="canvasContainer">
       <scroll-view 
         class="canvas-scroll" 
         scroll-x 
@@ -97,7 +97,7 @@
         <!-- 颜色统计 -->
       <view class="color-statistics" :style="{ width: gridWidth + 'px' }">
         <view class="stats-header">
-          <text class="tool-icon">🎨</text>
+          <image class="stats-logo" src="/static/tabbar/logo.png" mode="aspectFit"></image>
           <text class="stats-title">HuoHuo | MARD</text>
           <text class="stats-summary">（ 总：{{ colorStatistics.totalPixels }}）</text>
         </view>
@@ -221,18 +221,18 @@
           <text class="menu-icon">📥</text>
           <text class="menu-text">导出图片</text>
         </view>
-        <view class="menu-item" @tap="exportPdf">
+        <!-- <view class="menu-item" @tap="exportPdf">
           <text class="menu-icon">📄</text>
           <text class="menu-text">导出PDF图纸</text>
-        </view>
-        <view class="menu-item" @tap="shareWork">
+        </view> -->
+        <!-- <view class="menu-item" @tap="shareWork">
           <text class="menu-icon">📤</text>
           <text class="menu-text">分享作品</text>
-        </view>
-        <view class="menu-item" @tap="showSettings">
+        </view> -->
+        <!-- <view class="menu-item" @tap="showSettings">
           <text class="menu-icon">⚙</text>
           <text class="menu-text">画布设置</text>
-        </view>
+        </view> -->
       </view>
     </view>
 
@@ -576,7 +576,6 @@ function zoomIn() {
   canvasScale.value = Math.min(3, canvasScale.value + 0.25)
   gridWidth.value = gridWidthOneX.value * canvasScale.value
   gridHeight.value = gridHeightOneX.value * canvasScale.value
-  console.log('zoomIn:', canvasScale.value, gridWidth.value, gridHeight.value)
 }
 
 function zoomOut() {
@@ -677,7 +676,8 @@ async function generatePoster() {
   
   try {
     const result = await exportCanvasToImage()
-    
+  
+    console.log('导出图片结果:', result)
     if (result && result.tempFilePath) {
       await saveImageToAlbum(result.tempFilePath)
       uni.showToast({
@@ -722,13 +722,26 @@ async function exportCanvasToImage() {
         const exportWidth = width * cellSizeExport
         const exportHeight = height * cellSizeExport
 
+        // Calculate total height including color statistics
+        const statsStartY = exportHeight + 10
+        const statsPadding = 15
+        const lineHeight = 25
+        let currentY = statsStartY + 50
+        const maxStatsToShow = Math.min(colorStatistics.value.colors.length, 20)
+        currentY += maxStatsToShow * lineHeight
+        if (colorStatistics.value.colors.length > maxStatsToShow) {
+          currentY += 30
+        }
+        const totalHeight = currentY + 20
+
+        // Set canvas size to include both grid and statistics
         canvas.width = exportWidth * dpr
-        canvas.height = exportHeight * dpr
+        canvas.height = totalHeight * dpr
         ctx.scale(dpr, dpr)
 
-        // Draw white background
+        // Draw white background for entire canvas
         ctx.fillStyle = '#FFFFFF'
-        ctx.fillRect(0, 0, exportWidth, exportHeight)
+        ctx.fillRect(0, 0, exportWidth, totalHeight)
         
         // Draw each cell to match the grid-overlay exactly
         for (let y = 0; y < height; y++) {
@@ -791,6 +804,95 @@ async function exportCanvasToImage() {
           }
         }
         
+        // Draw color statistics section
+        // Stats header background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
+        ctx.fillRect(0, statsStartY - 5, exportWidth, 40)
+        
+        // Draw logo
+        const logoSize = 20
+        const logoX = statsPadding
+        const logoY = statsStartY + 5
+        
+        // Load and draw logo image
+        const logoImg = canvas.createImage()
+        logoImg.src = '/static/tabbar/logo.png'
+        
+        // Wait for logo to load, then continue drawing
+        await new Promise((resolveLogo) => {
+          logoImg.onload = () => {
+            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize)
+            resolveLogo()
+          }
+          logoImg.onerror = () => {
+            console.warn('Logo failed to load, skipping')
+            resolveLogo()
+          }
+        })
+        
+        // Draw title after logo
+        ctx.fillStyle = 'black'
+        ctx.font = 'bold 16px sans-serif'
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('HuoHuo | MARD', statsPadding + logoSize + 8, statsStartY + 15)
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+        ctx.font = '14px sans-serif'
+        ctx.fillText(`（ 总：${colorStatistics.value.totalPixels}）`, statsPadding + logoSize + 90, statsStartY + 15)
+        
+        // Draw each color stat
+        currentY = statsStartY + 50
+        const swatchHeight = 20
+        const swatchPadding = 4
+        
+        for (let i = 0; i < maxStatsToShow; i++) {
+          const stat = colorStatistics.value.colors[i]
+          
+          // Draw color swatch background
+          ctx.fillStyle = stat.color
+          const swatchX = statsPadding
+          const swatchY = currentY - swatchHeight / 2
+          ctx.fillRect(swatchX, swatchY, 60, swatchHeight)
+          
+          // Draw border
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+          ctx.lineWidth = 1
+          ctx.strokeRect(swatchX, swatchY, 60, swatchHeight)
+          
+          // Draw shadow effect
+          ctx.shadowColor = '#CCC'
+          ctx.shadowBlur = 3
+          ctx.shadowOffsetX = 1
+          ctx.shadowOffsetY = 1
+          ctx.fillRect(swatchX, swatchY, 60, swatchHeight)
+          ctx.shadowColor = 'transparent'
+          ctx.shadowBlur = 0
+          ctx.shadowOffsetX = 0
+          ctx.shadowOffsetY = 0
+          
+          // Draw color name inside swatch
+          ctx.fillStyle = stat.textColor || 'black'
+          ctx.font = '10px sans-serif'
+          ctx.textAlign = 'left'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(stat.name, swatchX + swatchPadding + 2, swatchY + swatchHeight / 2)
+          
+          // Draw count inside swatch
+          ctx.fillStyle = stat.countTextColor || 'black'
+          ctx.fillText('\u00A0\u00A0\u00A0(' + stat.count + ')', swatchX + swatchPadding + 2, swatchY + swatchHeight / 2)
+          
+          currentY += lineHeight
+        }
+        
+        // If there are more colors than shown
+        if (colorStatistics.value.colors.length > maxStatsToShow) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+          ctx.font = '12px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.fillText(`...还有 ${colorStatistics.value.colors.length - maxStatsToShow} 种颜色`, exportWidth / 2, currentY + 10)
+        }
+        
         // Use setTimeout instead of await to avoid promise issues in callback
         setTimeout(() => {
           try {
@@ -798,12 +900,12 @@ async function exportCanvasToImage() {
               canvas: canvas,
               x: 0,
               y: 0,
-              width: exportWidth * 4,
-              height: exportHeight * 4,
+              width: exportWidth,
+              height: totalHeight,
               destWidth: exportWidth * 4,
-              destHeight: exportHeight * 4,
+              destHeight: totalHeight * 4,
               fileType: 'png',
-              quality: 10,
+              quality: 1,
               success: (res) => {
                 resolve(res)
               },
@@ -953,7 +1055,6 @@ async function convertImage(imagePath) {
     
     workTitle.value = '图片转换'
     gridData.value = result.grid
-    console.log('width', result.width, 'height', result.height)
     gridWidthCells.value = result.width 
     gridHeightCells.value = result.height
     gridWidth.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
@@ -1176,10 +1277,18 @@ onShareTimeline(() => {
   width: 100%;
   
   .stats-header {
+    display: flex;
     align-items: center;
+    gap: 12rpx;
     margin-bottom: 16rpx;
     padding-bottom: 12rpx;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    
+    .stats-logo {
+      width: 40rpx;
+      height: 40rpx;
+      flex-shrink: 0;
+    }
     
     .stats-title {
       font-size: 28rpx;
