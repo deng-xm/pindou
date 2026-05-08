@@ -267,7 +267,7 @@ const gridWidth = ref(290)
 const gridHeight = ref(290)
 const gridWidthOneX = ref(290)
 const gridHeightOneX = ref(290)
-const cellSize = ref(10)
+const cellSize = ref(16)
 const gridWidthCells = ref(29)
 const gridHeightCells = ref(29)
 
@@ -474,15 +474,19 @@ function getCellStyle(colorId, x, y) {
   // 设置字体颜色（根据背景色自动调整）
   const bgColorNumber = color?color.color.replace('#', ''):'FFFFFF'
   const midColor='7FFFFF'
+  const borderWidth = showGrid.value ? '0.5' : '0'
   const styleObj = {
     width: cellSize.value + 'px',
     height: cellSize.value + 'px',
     backgroundColor: bgColor,
     borderColor: borderColor,
-    borderWidth: showGrid.value ? '0.5px' : '0',
-    fontSize: cellSize.value * 0.3 + 'px',
+    borderWidth: borderWidth+'px',
+    font: `${(cellSize.value - (borderWidth * 2) - 1) / 3}px sans-serif`,
+    textAlign: 'center',
+    lineHeight: cellSize.value + 'px',
     color: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white',
   }
+  console.log('font', styleObj.font)
   return styleObj
 }
 

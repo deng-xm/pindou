@@ -34,7 +34,7 @@
             <view class="setting-control">
               <slider 
                 :value="gridCellSize" 
-                :min="10" 
+                :min="16" 
                 :max="30" 
                 :step="2"
                 :show-value="true"
@@ -73,7 +73,7 @@ const props = defineProps({
   },
   cellSize: {
     type: Number,
-    default: 10
+    default: 16
   },
   width: {
     type: Number,
@@ -92,7 +92,7 @@ const props = defineProps({
 const gridCellSize = ref(10)
 const canvasWidth = ref(29)
 const canvasHeight = ref(29)
-const confirmButtonText = ref('应用')
+// const confirmButtonText = ref('应用')
 
 // 尺寸预设
 const sizePresets = [
@@ -100,7 +100,7 @@ const sizePresets = [
   { label: '中 51x51', w: 51, h: 51 },
   { label: '大 102x102', w: 102, h: 102 },
   { label: '超大 204x204', w: 204, h: 204 },
-  { label: '巨大 408x408', w: 408, h: 408 },
+  // { label: '巨大 408x408', w: 408, h: 408 },
 ]
 
 const emit = defineEmits(['updateCanvas', 'close'])
