@@ -324,7 +324,7 @@ function formatDate(timestamp) {
 <style lang="scss" scoped>
 .index-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF5F8 0%, #FFFFFF 100%);
+  background: linear-gradient(180deg, $bg-color 0%, $bg-white 100%);
   padding-bottom: 40rpx;
 }
 

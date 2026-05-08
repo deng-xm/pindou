@@ -76,10 +76,9 @@
                 <view 
                   v-for="(cell, x) in row" 
                   :key="x"
-                  class="grid-cell"
-                  :class="{ 
-                    'cell-active': currentCell.x === x && currentCell.y === y,
-                    'cell-filled': cell.id > 0
+                  :class="{
+                    'grid-cell cell-active': currentCell.x === x && currentCell.y === y,
+                    'grid-cell cell-filled': cell.id > 0
                   }"
                   :style="getCellStyle(cell.id, x, y)"
                   @tap="handleCellTap(x, y)"
@@ -475,7 +474,7 @@ function getCellStyle(colorId, x, y) {
   // 设置字体颜色（根据背景色自动调整）
   const bgColorNumber = color?color.color.replace('#', ''):'FFFFFF'
   const midColor='7FFFFF'
-  return {
+  const styleObj = {
     width: cellSize.value + 'px',
     height: cellSize.value + 'px',
     backgroundColor: bgColor,
@@ -484,6 +483,7 @@ function getCellStyle(colorId, x, y) {
     fontSize: cellSize.value * 0.3 + 'px',
     color: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white',
   }
+  return styleObj
 }
 
 // 选择工具
@@ -934,15 +934,6 @@ async function exportCanvasToImage() {
   })
 }
 
-// function lightenColor(hex, percent) {
-//   const num = parseInt(hex.replace('#', ''), 16)
-//   const amt = Math.round(2.55 * percent)
-//   const R = Math.min(255, (num >> 16) + amt)
-//   const G = Math.min(255, ((num >> 8) & 0x00FF) + amt)
-//   const B = Math.min(255, (num & 0x0000FF) + amt)
-//   return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
-// }
-
 function saveImageToAlbum(filePath) {
   return new Promise((resolve, reject) => {
     wx.saveImageToPhotosAlbum({
@@ -1225,6 +1216,7 @@ onShareTimeline(() => {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    font-family: 'sans-serif';
     // color: rgba(0, 0, 0, 0.5);
   }
 }
@@ -1266,10 +1258,10 @@ onShareTimeline(() => {
 
 .color-statistics {
   padding: 0 20rpx 20rpx 20rpx;
-  margin: 0 20rpx 20rpx;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12rpx;
   width: 100%;
+  margin: 0 auto;
   
   .stats-header {
     display: flex;
