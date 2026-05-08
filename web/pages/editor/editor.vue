@@ -732,7 +732,10 @@ async function exportCanvasToImage() {
         const lineHeight = 25
         let currentY = statsStartY + 50
         const len = colorStatistics.value.colors.length
-        const totalHeight = len * lineHeight + 20
+        const colsCount = parseInt(exportWidth/80)
+        const rowsCount = (len/colsCount)>parseInt(len/colsCount)?parseInt(len/colsCount)+1:len/colsCount
+        const totalHeight = currentY + (rowsCount * lineHeight) + 40
+        console.log('exportWidth',exportWidth,'len',len,'colsCount',colsCount,'rowsCount',rowsCount,'Total height:', totalHeight)
 
         // Set canvas size to include both grid and statistics
         canvas.width = exportWidth * dpr
@@ -1109,9 +1112,16 @@ onShareTimeline(() => {
   padding: 20rpx 30rpx;
   background: #16213e;
   
-  .toolbar-left,
-  .toolbar-right {
-    width: 80rpx;
+  // .toolbar-left,
+  // .toolbar-right {
+  //   width: 80rpx;
+  // }
+  .toolbar-left{
+    text-align: left;
+    margin-right: 20rpx;
+  }
+  .toolbar-right{
+    margin-left: 20rpx;
   }
   
   .toolbar-center {
