@@ -3,7 +3,7 @@
     <!-- 顶部Banner -->
     <view class="banner">
       <view class="banner-content">
-        <text class="banner-title">趣味拼豆</text>
+        <text class="banner-title">HuoHuo拼豆</text>
         <text class="banner-subtitle">将图片转换为拼豆创作图纸</text>
       </view>
       <view class="banner-decoration">

@@ -483,7 +483,7 @@ function getCellStyle(colorId, x, y) {
     borderColor: borderColor,
     borderWidth: borderWidth+'px',
     // border: `solid ${borderColor} ${borderWidth}px`,
-    font: `${(cellSize.value - (borderWidth * 2) - 1) / 3}px sans-serif`,
+    font: `${(cellSize.value - (borderWidth * 2) - 3) / 3}px sans-serif`,
     textAlign: 'center',
     lineHeight: cellSize.value + 'px',
     color: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white',
