@@ -76,9 +76,10 @@
                 <view 
                   v-for="(cell, x) in row" 
                   :key="x"
+                  class="grid-cell "
                   :class="{
-                    'grid-cell cell-active': currentCell.x === x && currentCell.y === y,
-                    'grid-cell cell-filled': cell.id > 0
+                    'cell-active': currentCell.x === x && currentCell.y === y,
+                    'cell-filled': cell.id > 0
                   }"
                   :style="getCellStyle(cell.id, x, y)"
                   @tap="handleCellTap(x, y)"
@@ -474,20 +475,19 @@ function getCellStyle(colorId, x, y) {
   // 设置字体颜色（根据背景色自动调整）
   const bgColorNumber = color?color.color.replace('#', ''):'FFFFFF'
   const midColor='7FFFFF'
-  const borderWidth = showGrid.value ? '0.5' : '0'
-  const styleObj = {
+  const borderWidth = showGrid.value ? 0.5 : 0
+  return {
     width: cellSize.value + 'px',
     height: cellSize.value + 'px',
     backgroundColor: bgColor,
     borderColor: borderColor,
     borderWidth: borderWidth+'px',
+    // border: `solid ${borderColor} ${borderWidth}px`,
     font: `${(cellSize.value - (borderWidth * 2) - 1) / 3}px sans-serif`,
     textAlign: 'center',
     lineHeight: cellSize.value + 'px',
     color: parseInt(bgColorNumber,16)>parseInt(midColor,16) ? 'black' : 'white',
   }
-  console.log('font', styleObj.font)
-  return styleObj
 }
 
 // 选择工具
@@ -731,12 +731,8 @@ async function exportCanvasToImage() {
         const statsPadding = 15
         const lineHeight = 25
         let currentY = statsStartY + 50
-        const maxStatsToShow = Math.min(colorStatistics.value.colors.length, 20)
-        currentY += maxStatsToShow * lineHeight
-        if (colorStatistics.value.colors.length > maxStatsToShow) {
-          currentY += 30
-        }
-        const totalHeight = currentY + 20
+        const len = colorStatistics.value.colors.length
+        const totalHeight = len * lineHeight + 20
 
         // Set canvas size to include both grid and statistics
         canvas.width = exportWidth * dpr
@@ -854,7 +850,8 @@ async function exportCanvasToImage() {
         // const swatchY = currentY - swatchHeight / 2
         let itemX=swatchX
         let itemY=currentY - swatchHeight / 2
-        for (let i = 0; i < maxStatsToShow; i++) {
+       
+        for (let i = 0; i < len; i++) {
           const stat = colorStatistics.value.colors[i]
           
           // Draw color swatch background
@@ -898,14 +895,6 @@ async function exportCanvasToImage() {
             itemX = itemX + 80
           }
           currentY += lineHeight
-        }
-        
-        // If there are more colors than shown
-        if (colorStatistics.value.colors.length > maxStatsToShow) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-          ctx.font = '12px sans-serif'
-          ctx.textAlign = 'center'
-          ctx.fillText(`...还有 ${colorStatistics.value.colors.length - maxStatsToShow} 种颜色`, exportWidth / 2, currentY + 10)
         }
         
         // Use setTimeout instead of await to avoid promise issues in callback
