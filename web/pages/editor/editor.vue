@@ -721,25 +721,25 @@ async function exportCanvasToImage() {
 
         const width = gridWidthCells.value + 6
         const height = gridHeightCells.value + 6
-        const cellSizeExport = cellSize.value // Use the same cell size as displayed
-
+        const cellSizeExport = cellSize.value * canvasScale.value // Use the same cell size as displayed
+        const scale = canvasScale.value>1?canvasScale.value:1
         const exportWidth = width * cellSizeExport
         const exportHeight = height * cellSizeExport
 
         // Calculate total height including color statistics
-        const statsStartY = exportHeight + 10
-        const statsPadding = 15
-        const lineHeight = 25
-        let currentY = statsStartY + 50
+        const statsStartY = exportHeight + 10 * scale
+        const statsPadding = 15 * scale
+        const lineHeight = 25 * scale
+        let currentY = statsStartY + 50 * scale
         const len = colorStatistics.value.colors.length
-        const colsCount = parseInt(exportWidth/80)
-        const rowsCount = (len/colsCount)>parseInt(len/colsCount)?parseInt(len/colsCount)+1:len/colsCount
-        const totalHeight = currentY + (rowsCount * lineHeight) + 40
-        console.log('exportWidth',exportWidth,'len',len,'colsCount',colsCount,'rowsCount',rowsCount,'Total height:', totalHeight)
+        const colsCount = parseInt(exportWidth/(80 * scale))
+        const rowsCount = (len/colsCount)>parseInt(len/colsCount)?parseInt(len/colsCount)+1:len/colsCount * scale
+        const totalHeight = currentY + (rowsCount * lineHeight) + (40 * scale)
 
         // Set canvas size to include both grid and statistics
         canvas.width = exportWidth * dpr
         canvas.height = totalHeight * dpr
+        console.log('gridWidth',gridWidth.value,'exportWidth',exportWidth,'len',len,'colsCount',colsCount,'rowsCount',rowsCount,'Total height:', totalHeight)
         ctx.scale(dpr, dpr)
 
         // Draw white background for entire canvas
@@ -810,12 +810,12 @@ async function exportCanvasToImage() {
         // Draw color statistics section
         // Stats header background
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
-        ctx.fillRect(0, statsStartY - 5, exportWidth, 40)
+        ctx.fillRect(0, statsStartY - (5*scale), exportWidth, 40 * scale)
         
         // Draw logo
-        const logoSize = 20
+        const logoSize = 20 * scale
         const logoX = statsPadding
-        const logoY = statsStartY + 5
+        const logoY = statsStartY + 5 * scale
         
         // Load and draw logo image
         const logoImg = canvas.createImage()
@@ -835,20 +835,20 @@ async function exportCanvasToImage() {
         
         // Draw title after logo
         ctx.fillStyle = 'black'
-        ctx.font = 'bold 16px sans-serif'
+        ctx.font = `bold ${16 * scale}px sans-serif`
         ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
-        ctx.fillText('HuoHuo | MARD', statsPadding + logoSize + 8, statsStartY + 17)
+        ctx.fillText('HuoHuo | MARD', statsPadding + logoSize + (8*scale), statsStartY + (17*scale))
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
-        ctx.font = '14px sans-serif'
+        ctx.font = `${14 * scale}px sans-serif` 
         ctx.textBaseline = 'middle'
-        ctx.fillText(`（ 总：${colorStatistics.value.totalPixels}）`, statsPadding + logoSize + 150, statsStartY + 17)
+        ctx.fillText(`（ 总：${colorStatistics.value.totalPixels}）`, statsPadding + logoSize + (150*scale), statsStartY + (17*scale))
         
         // Draw each color stat
-        currentY = statsStartY + 50
-        const swatchHeight = 20
-        const swatchPadding = 4
+        currentY = statsStartY + 50 * scale
+        const swatchHeight = 20 * scale
+        const swatchPadding = 4 * scale
         const swatchX = statsPadding
         // const swatchY = currentY - swatchHeight / 2
         let itemX=swatchX
@@ -859,19 +859,19 @@ async function exportCanvasToImage() {
           
           // Draw color swatch background
           ctx.fillStyle = stat.color
-          ctx.fillRect(itemX, itemY, 70, swatchHeight)
+          ctx.fillRect(itemX, itemY, 70 * scale, swatchHeight)
           
           // Draw border
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
           ctx.lineWidth = 1
-          ctx.strokeRect(itemX, itemY, 70, swatchHeight)
+          ctx.strokeRect(itemX, itemY, 70 * scale, swatchHeight)
           
           // Draw shadow effect
           ctx.shadowColor = '#CCC'
           ctx.shadowBlur = 3
           ctx.shadowOffsetX = 1
           ctx.shadowOffsetY = 1
-          ctx.fillRect(itemX, itemY, 70, swatchHeight)
+          ctx.fillRect(itemX, itemY, 70 * scale, swatchHeight)
           ctx.shadowColor = 'transparent'
           ctx.shadowBlur = 0
           ctx.shadowOffsetX = 0
@@ -879,23 +879,23 @@ async function exportCanvasToImage() {
           
           // Draw color name inside swatch
           ctx.fillStyle = stat.textColor || 'black'
-          ctx.font = '10px sans-serif'
+          ctx.font = `${10 * scale}px sans-serif`
           ctx.textAlign = 'left'
           ctx.textBaseline = 'middle'
           const metrics = ctx.measureText(stat.name);
           const textWidth = metrics.width;
-          ctx.fillText(stat.name, itemX + swatchPadding + 2, itemY + swatchHeight / 2)
+          ctx.fillText(stat.name, itemX + swatchPadding + 2 * scale, itemY + swatchHeight / 2)
           
           // Draw count inside swatch
-          const countX = itemX + swatchPadding + 2 + textWidth
+          const countX = itemX + swatchPadding + 2 * scale + textWidth
           ctx.fillStyle = stat.countTextColor || 'black'
           ctx.fillText('\u00A0\u00A0\u00A0(' + stat.count + ')', countX, itemY + swatchHeight / 2)
   
-          if ((itemX + 80 + 70) > exportWidth) {
+          if ((itemX + 80 * scale + 70 * scale) > exportWidth) {
             itemX = swatchX
-            itemY += swatchHeight + 10
+            itemY += swatchHeight + 10 * scale
           } else {
-            itemX = itemX + 80
+            itemX = itemX + 80 * scale
           }
           currentY += lineHeight
         }
@@ -909,8 +909,8 @@ async function exportCanvasToImage() {
               y: 0,
               width: exportWidth,
               height: totalHeight,
-              destWidth: exportWidth * 4,
-              destHeight: totalHeight * 4,
+              destWidth: exportWidth * 4/scale,
+              destHeight: totalHeight * 4/scale,
               fileType: 'png',
               quality: 1,
               success: (res) => {
