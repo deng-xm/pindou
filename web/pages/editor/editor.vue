@@ -220,10 +220,10 @@
     <view class="menu-overlay" v-if="showMenu" @tap="showMenu = false">
       <view class="menu-panel" @tap.stop>
         <view class="menu-header">更多操作</view>
-        <!-- <view class="menu-item" @tap="saveWorkAction">
+        <view class="menu-item" @tap="saveWorkAction">
           <text class="menu-icon">💾</text>
           <text class="menu-text">保存作品</text>
-        </view> -->
+        </view>
         <view class="menu-item" @tap="generatePoster">
           <text class="menu-icon">📥</text>
           <text class="menu-text">导出图片</text>
@@ -687,8 +687,6 @@ async function generatePoster() {
   
   try {
     const result = await exportCanvasToImage()
-  
-    console.log('导出图片结果:', result)
     if (result && result.tempFilePath) {
       await saveImageToAlbum(result.tempFilePath)
       uni.showToast({
@@ -990,12 +988,15 @@ function showSettings() {
 // 加载作品
 function loadWork(workId) {
   const work = getWorkById(workId)
+  console.log('loadWork', workId, work)
   if (work) {
     workTitle.value = work.title
     gridData.value = work.gridData
-    gridWidthCells.value = work.width
-    gridHeightCells.value = work.height
-    updateCanvasSize()
+    // gridWidthCells.value = work.width
+    // gridHeightCells.value = work.height
+    const configObj={width: work.width, height: work.height, grid: work.gridData}
+    // updateCanvasSize(configObj)
+    setGridData(configObj)
     saveToHistory()
   }
 }
@@ -1042,13 +1043,7 @@ async function convertImage(imagePath) {
     }
     
     workTitle.value = '图片转换'
-    gridData.value = result.grid
-    gridWidthCells.value = result.width 
-    gridHeightCells.value = result.height
-    gridWidth.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
-    gridHeight.value = (result.height + 6) * cellSize.value
-    gridWidthOneX.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
-    gridHeightOneX.value = (result.height + 6) * cellSize.value
+    setGridData(result)
     saveToHistory()
     
     uni.showToast({
@@ -1066,6 +1061,16 @@ async function convertImage(imagePath) {
   } finally {
     isLoading.value = false
   }
+}
+
+function setGridData(result) {
+  gridData.value = result.grid
+  gridWidthCells.value = result.width 
+  gridHeightCells.value = result.height
+  gridWidth.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
+  gridHeight.value = (result.height + 6) * cellSize.value
+  gridWidthOneX.value = (result.width + 6) * cellSize.value  // 四边各空出3行/列
+  gridHeightOneX.value = (result.height + 6) * cellSize.value
 }
 
 // 验证图片路径

@@ -164,7 +164,7 @@ async function samplePixels(imagePath, width, height, canvasId = 'processCanvas'
                   a: imageData.data[i + 3]
                 })
               }
-              console.log('像素采样成功，数量：', pixels.length)
+              // console.log('像素采样成功，数量：', pixels.length)
               resolve(pixels)
             } catch (e) {
               console.error('获取像素数据失败：', e)
