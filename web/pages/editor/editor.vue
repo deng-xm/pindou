@@ -249,7 +249,7 @@
 
     <!-- 设置弹窗 -->
     <view class="modal-overlay" v-if="showSettingsModal" @tap="showSettingsModal = false">
-      <canvas-setting :button-text="settingButtonText" :width="canvasWidth" :height="canvasHeight" :cellSize="cellSize" :grid-data="gridData" @close="showSettingsModal=false" @updateCanvas="applySetting"></canvas-setting>
+      <canvas-setting :button-text="settingButtonText" :is-init="isInit" :width="gridWidthCells" :height="gridHeightCells" :cellSize="cellSize" :grid-data="gridData" @close="showSettingsModal=false" @updateCanvas="applySetting"></canvas-setting>
     </view>
 
     <!-- 加载提示 -->
@@ -275,13 +275,14 @@ import CanvasSetting from '@/components/canvasSetting.vue'
 let pendingImage = null
 
 // 画布配置
-const gridWidth = ref(290)
-const gridHeight = ref(290)
-const gridWidthOneX = ref(290)
-const gridHeightOneX = ref(290)
+const gridWidth = ref(520)
+const gridHeight = ref(520)
+const gridWidthOneX = ref(520)
+const gridHeightOneX = ref(520)
 const cellSize = ref(16)
-const gridWidthCells = ref(29)
-const gridHeightCells = ref(29)
+const gridWidthCells = ref(52)
+const gridHeightCells = ref(52)
+const isInit = ref(true)
 
 // 画布数据
 const gridData = ref([])
@@ -303,11 +304,12 @@ const showMenu = ref(false)
 const showSettingsModal = ref(false)
 const isLoading = ref(false)
 const loadingText = ref('')
-const canvasWidth = ref(29)
-const canvasHeight = ref(29)
+const canvasWidth = ref(52)
+const canvasHeight = ref(52)
 const settingButtonText = ref('应用')
 const applyType = ref('updateCanvas')
 const applyImgPath = ref('')
+
 
 // 工具列表
 const tools = [
@@ -464,6 +466,7 @@ function updateCanvasSize(config) {
   gridWidthOneX.value = gridw
   gridHeightOneX.value = gridH
   canvasScale.value = 1
+  config?.grid&&(gridData.value = config.grid)
 }
 
 function getCellName(y, x) {
@@ -1017,7 +1020,9 @@ function shareWork() {
 // 显示设置
 function showSettings() {
   showMenu.value = false
+  isInit.value = false
   showSettingsModal.value = true
+  settingButtonText.value = '应用'
   applyType.value = 'updateCanvas'
 }
 
@@ -1052,6 +1057,7 @@ function loadTemplate(templateId) {
 }
 function beforeConvertImage(imagePath){
   settingButtonText.value="开始转换"
+  isInit.value = true
   showSettingsModal.value = true 
   applyType.value = 'convertImage'
   applyImgPath.value=imagePath

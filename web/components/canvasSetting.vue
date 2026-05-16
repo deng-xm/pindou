@@ -77,21 +77,25 @@ const props = defineProps({
   },
   width: {
     type: Number,
-    default: 29
+    default: 52
   },
   height: {
     type: Number,
-    default: 29
+    default: 52
   },
   buttonText: {
     type: String,
     default: '应用'
   },
+  isInit: {
+    type: Boolean,
+    default: false
+  },
 })
 // 画布配置
 const gridCellSize = ref(10)
-const canvasWidth = ref(29)
-const canvasHeight = ref(29)
+const canvasWidth = ref(52)
+const canvasHeight = ref(52)
 // const confirmButtonText = ref('应用')
 
 // 尺寸预设
@@ -122,6 +126,21 @@ function applyPreset(preset) {
 }
 // 应用设置
 function applySettings() {
+  if((props.width>canvasWidth.value || props.height>canvasHeight.value)&&!props.isInit){
+    uni.showModal({
+      title: '确认提醒',
+      content: '当前操作可能会导致图纸被裁剪，确认继续吗？',
+    success: (res) => {
+      confirmApply()
+    }
+  })
+  }
+  else {
+    confirmApply()
+  }
+  
+}
+function confirmApply() {
   const newWidth = canvasWidth.value
   const newHeight = canvasHeight.value
   
