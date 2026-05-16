@@ -66,6 +66,13 @@
               class="process-canvas"
             ></canvas>
             
+            <!-- 隐藏的导出 canvas -->
+            <canvas 
+              type="2d"
+              id="exportCanvas"
+              class="export-canvas"
+            ></canvas>
+            
             <!-- 像素格子覆盖层 -->
             <view class="grid-overlay">
               <view 
@@ -229,10 +236,10 @@
           <text class="menu-icon">📤</text>
           <text class="menu-text">分享作品</text>
         </view> -->
-        <!-- <view class="menu-item" @tap="showSettings">
+        <view class="menu-item" @tap="showSettings">
           <text class="menu-icon">⚙</text>
           <text class="menu-text">画布设置</text>
-        </view> -->
+        </view> 
       </view>
     </view>
 
@@ -707,7 +714,7 @@ async function generatePoster() {
 async function exportCanvasToImage() {
   return new Promise((resolve, reject) => {
     const query = uni.createSelectorQuery()
-    query.select('#mainCanvas')
+    query.select('#exportCanvas')
       .fields({ node: true, size: true })
       .exec(async (res) => {
         if (!res || !res[0] || !res[0].node) {
@@ -718,7 +725,7 @@ async function exportCanvasToImage() {
         const canvas = res[0].node
         const ctx = canvas.getContext('2d')
         const dpr = wx.getSystemInfoSync().pixelRatio
-
+        
         const width = gridWidthCells.value + 6
         const height = gridHeightCells.value + 6
         const cellSizeExport = cellSize.value * canvasScale.value // Use the same cell size as displayed
@@ -739,7 +746,6 @@ async function exportCanvasToImage() {
         // Set canvas size to include both grid and statistics
         canvas.width = exportWidth * dpr
         canvas.height = totalHeight * dpr
-        console.log('gridWidth',gridWidth.value,'exportWidth',exportWidth,'len',len,'colsCount',colsCount,'rowsCount',rowsCount,'Total height:', totalHeight)
         ctx.scale(dpr, dpr)
 
         // Draw white background for entire canvas
@@ -912,7 +918,7 @@ async function exportCanvasToImage() {
               destWidth: exportWidth * 4/scale,
               destHeight: totalHeight * 4/scale,
               fileType: 'png',
-              quality: 1,
+              quality: 2,
               success: (res) => {
                 resolve(res)
               },
@@ -1185,6 +1191,14 @@ onShareTimeline(() => {
 }
 
 .process-canvas {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  width: 50px;
+  height: 50px;
+}
+
+.export-canvas {
   position: fixed;
   top: -9999px;
   left: -9999px;
