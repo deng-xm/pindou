@@ -226,7 +226,11 @@
         </view>
         <view class="menu-item" @tap="generatePoster">
           <text class="menu-icon">📥</text>
-          <text class="menu-text">导出图片</text>
+          <text class="menu-text">导出图纸</text>
+        </view>
+        <view class="menu-item" @tap="generatePosterMirror">
+          <text class="menu-icon">📥</text>
+          <text class="menu-text">导出镜像图纸</text>
         </view>
         <!-- <view class="menu-item" @tap="exportPdf">
           <text class="menu-icon">📄</text>
@@ -710,7 +714,35 @@ async function generatePoster() {
   }
 }
 
-async function exportCanvasToImage() {
+async function generatePosterMirror() {
+  isLoading.value = true
+  loadingText.value = '正在生成镜像图片...'
+  
+  try {
+    const result = await exportCanvasToImage(true)
+    if (result && result.tempFilePath) {
+      await saveImageToAlbum(result.tempFilePath)
+      uni.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+    } else {
+      throw new Error('图片生成失败')
+    }
+  } catch (err) {
+    console.error('导出镜像图片失败:', err)
+    uni.showToast({
+      title: '导出失败: ' + (err.message || '未知错误'),
+      icon: 'none',
+      duration: 3000
+    })
+  } finally {
+    isLoading.value = false
+    showMenu.value = false
+  }
+}
+
+async function exportCanvasToImage(isMirror = false) {
   return new Promise((resolve, reject) => {
     const query = uni.createSelectorQuery()
     query.select('#exportCanvas')
@@ -754,9 +786,12 @@ async function exportCanvasToImage() {
         // Draw each cell to match the grid-overlay exactly
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
+            // For mirror mode, reverse the x coordinate
+            const drawX = isMirror ? (width - 1 - x) : x
+            
             let cellData = {}
-            if (y < gridData.value.length && x < gridData.value[y].length) {
-              cellData = gridData.value[y][x]
+            if (y < gridData.value.length && drawX < gridData.value[y].length) {
+              cellData = gridData.value[y][drawX]
             }
             
             const colorId = cellData?.id || 0
