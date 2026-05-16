@@ -146,7 +146,7 @@ function applySettings() {
   border-radius: $radius-lg;
   width: 600rpx;
   max-height: 80vh;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .modal-header {
