@@ -97,9 +97,9 @@ const canvasHeight = ref(29)
 // 尺寸预设
 const sizePresets = [
   { label: '小 29x29', w: 29, h: 29 },
-  { label: '中 51x51', w: 51, h: 51 },
-  { label: '大 102x102', w: 102, h: 102 },
-  { label: '超大 204x204', w: 204, h: 204 },
+  { label: '中 52x52', w: 52, h: 52 },
+  { label: '大 104x104', w: 104, h: 104 },
+  { label: '超大 208x208', w: 208, h: 208 },
   // { label: '巨大 408x408', w: 408, h: 408 },
 ]
 
@@ -135,7 +135,7 @@ function applySettings() {
       gridData[y][x] = oldData[y]?.[x] || 0
     }
   }
-  const obj = { width: newWidth, height: newHeight, cellSize: gridCellSize.value }
+  const obj = { width: newWidth, height: newHeight, cellSize: gridCellSize.value, grid: gridData }
   emit('updateCanvas',obj)
   emit('close')
 }

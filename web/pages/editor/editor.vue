@@ -464,6 +464,7 @@ function updateCanvasSize(config) {
 
 function getCellName(y, x) {
   const row = gridData.value[y]
+  if(!row){return null}
   if(row[x].name){return row[x].name}
   if((y===0||y===gridData.value.length-1)&&x>0&&x<row.length-1){
     return x
